@@ -1,0 +1,17 @@
+declare module 'markdown-it-task-lists' {
+  import MarkdownIt from 'markdown-it';
+  interface TaskListOptions {
+    enabled?: boolean;
+    label?: boolean;
+    labelAfter?: boolean;
+  }
+  const taskLists: (md: MarkdownIt, options?: TaskListOptions) => void;
+  export default taskLists;
+}
+
+declare module 'markdown-it-emoji' {
+  import MarkdownIt from 'markdown-it';
+  export const bare: MarkdownIt.PluginSimple;
+  export const light: MarkdownIt.PluginSimple;
+  export const full: MarkdownIt.PluginSimple;
+}
