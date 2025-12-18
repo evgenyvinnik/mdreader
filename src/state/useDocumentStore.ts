@@ -15,6 +15,7 @@ interface DocumentStore {
   createNewDocument: () => void;
   updateContent: (content: string) => void;
   updateTitle: (title: string) => void;
+  loadFromFile: (content: string, filename: string) => void;
 }
 
 export function useDocumentStore(): DocumentStore {
@@ -113,11 +114,28 @@ export function useDocumentStore(): DocumentStore {
     [debouncedSave]
   );
 
+  const loadFromFile = useCallback(
+    (content: string, filename: string) => {
+      // Extract title from filename (remove .md extension)
+      const title = filename.replace(/\.md$/i, '').replace(/\.markdown$/i, '');
+      const newDoc: Document = {
+        id: generateId(),
+        title,
+        content,
+        updatedAt: Date.now(),
+      };
+      setDocument(newDoc);
+      debouncedSave(newDoc);
+    },
+    [debouncedSave]
+  );
+
   return {
     document,
     isLoading,
     createNewDocument,
     updateContent,
     updateTitle,
+    loadFromFile,
   };
 }
