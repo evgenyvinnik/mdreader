@@ -1,11 +1,11 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, type JSX } from 'react';
 import type { Document } from '../storage/indexedDb';
 
 interface FileDropdownProps {
-  documents: Document[];
-  currentDocId: string | undefined;
-  onSelect: (id: string) => void;
-  onDelete: (id: string) => void;
+  readonly documents: Document[];
+  readonly currentDocId: string | undefined;
+  readonly onSelect: (id: string) => void;
+  readonly onDelete: (id: string) => void;
 }
 
 export function FileDropdown({
@@ -13,7 +13,7 @@ export function FileDropdown({
   currentDocId,
   onSelect,
   onDelete,
-}: FileDropdownProps) {
+}: FileDropdownProps): JSX.Element {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -21,7 +21,7 @@ export function FileDropdown({
 
   // Close dropdown when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: MouseEvent): void => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
         setSearchQuery('');
@@ -29,7 +29,7 @@ export function FileDropdown({
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    return () => { document.removeEventListener('mousedown', handleClickOutside); };
   }, []);
 
   // Focus search input when dropdown opens
@@ -43,20 +43,20 @@ export function FileDropdown({
     doc.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleSelect = (id: string) => {
+  const handleSelect = (id: string): void => {
     onSelect(id);
     setIsOpen(false);
     setSearchQuery('');
   };
 
-  const handleDelete = (e: React.MouseEvent, id: string) => {
+  const handleDelete = (e: React.MouseEvent, id: string): void => {
     e.stopPropagation();
     if (confirm('Are you sure you want to delete this document?')) {
       onDelete(id);
     }
   };
 
-  const formatDate = (timestamp: number) => {
+  const formatDate = (timestamp: number): string => {
     const date = new Date(timestamp);
     return date.toLocaleDateString(undefined, {
       month: 'short',
@@ -73,7 +73,7 @@ export function FileDropdown({
     <div className="file-dropdown" ref={dropdownRef}>
       <button
         className="file-dropdown-trigger"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => { setIsOpen(!isOpen); }}
         title="Select document"
       >
         <svg
@@ -91,7 +91,7 @@ export function FileDropdown({
           <polyline points="14 2 14 8 20 8" />
         </svg>
         <span className="file-dropdown-current">
-          {currentDoc?.title || 'Select file'}
+          {currentDoc?.title ?? 'Select file'}
         </span>
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -131,7 +131,7 @@ export function FileDropdown({
               type="text"
               placeholder="Search files..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => { setSearchQuery(e.target.value); }}
               className="file-dropdown-search-input"
             />
           </div>
@@ -143,7 +143,7 @@ export function FileDropdown({
                 <div
                   key={doc.id}
                   className={`file-dropdown-item ${doc.id === currentDocId ? 'active' : ''}`}
-                  onClick={() => handleSelect(doc.id)}
+                  onClick={() => { handleSelect(doc.id); }}
                 >
                   <div className="file-dropdown-item-content">
                     <span className="file-dropdown-item-title">{doc.title}</span>
@@ -153,7 +153,7 @@ export function FileDropdown({
                   </div>
                   <button
                     className="file-dropdown-delete"
-                    onClick={(e) => handleDelete(e, doc.id)}
+                    onClick={(e) => { handleDelete(e, doc.id); }}
                     title="Delete document"
                   >
                     <svg

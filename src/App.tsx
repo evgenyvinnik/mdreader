@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, type JSX } from 'react';
 import { MarkdownEditor } from './editor/MarkdownEditor';
 import { MarkdownPreview } from './preview/MarkdownPreview';
 import { useDocumentStore } from './state/useDocumentStore';
@@ -18,7 +18,7 @@ function getInitialTheme(): Theme {
   const stored = localStorage.getItem(THEME_KEY);
   if (stored === 'dark' || stored === 'light') return stored;
   // Check system preference
-  if (window.matchMedia?.('(prefers-color-scheme: dark)').matches) {
+  if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
     return 'dark';
   }
   return 'light';
@@ -36,7 +36,7 @@ function getInitialScrollLock(): boolean {
   return true; // Default to locked
 }
 
-function App() {
+function App(): JSX.Element {
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
   const [viewMode, setViewMode] = useState<ViewMode>(getInitialViewMode);
   const [scrollLocked, setScrollLocked] = useState<boolean>(getInitialScrollLock);
@@ -114,22 +114,22 @@ function App() {
     });
   }, [scrollLocked]);
 
-  const toggleScrollLock = () => {
+  const toggleScrollLock = (): void => {
     setScrollLocked((prev) => !prev);
   };
 
-  const toggleTheme = () => {
+  const toggleTheme = (): void => {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
-  const handleOpenFile = async () => {
+  const handleOpenFile = async (): Promise<void> => {
     const fileData = await openMarkdownFile();
     if (fileData) {
       loadFromFile(fileData.content, fileData.filename);
     }
   };
 
-  const handleSaveFile = () => {
+  const handleSaveFile = (): void => {
     if (doc) {
       saveMarkdownFile(doc.content, doc.title);
     }
@@ -152,8 +152,8 @@ function App() {
           <FileDropdown
             documents={documents}
             currentDocId={doc?.id}
-            onSelect={loadDocument}
-            onDelete={deleteDocument}
+            onSelect={(id): void => { void loadDocument(id); }}
+            onDelete={(id): void => { void deleteDocument(id); }}
           />
         </div>
         <div className="toolbar-right">
@@ -182,7 +182,7 @@ function App() {
           </button>
           <button
             className="toolbar-button"
-            onClick={handleOpenFile}
+            onClick={(): void => { void handleOpenFile(); }}
             title="Open .md file"
           >
             <svg
@@ -263,7 +263,7 @@ function App() {
           <div className="view-toggle">
             <button
               className={`view-toggle-button ${viewMode === 'editor' ? 'active' : ''}`}
-              onClick={() => setViewMode('editor')}
+              onClick={() => { setViewMode('editor'); }}
               title="Editor only"
             >
               <svg
@@ -282,7 +282,7 @@ function App() {
             </button>
             <button
               className={`view-toggle-button ${viewMode === 'both' ? 'active' : ''}`}
-              onClick={() => setViewMode('both')}
+              onClick={() => { setViewMode('both'); }}
               title="Split view"
             >
               <svg
@@ -302,7 +302,7 @@ function App() {
             </button>
             <button
               className={`view-toggle-button ${viewMode === 'preview' ? 'active' : ''}`}
-              onClick={() => setViewMode('preview')}
+              onClick={() => { setViewMode('preview'); }}
               title="Preview only"
             >
               <svg

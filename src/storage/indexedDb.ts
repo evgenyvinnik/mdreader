@@ -2,10 +2,10 @@ import { openDB } from 'idb';
 import type { DBSchema, IDBPDatabase } from 'idb';
 
 export interface Document {
-  id: string;
-  title: string;
-  content: string;
-  updatedAt: number;
+  readonly id: string;
+  readonly title: string;
+  readonly content: string;
+  readonly updatedAt: number;
 }
 
 interface DocumentDB extends DBSchema {
@@ -24,14 +24,12 @@ const FALLBACK_KEY = 'mdreader-documents';
 let dbPromise: Promise<IDBPDatabase<DocumentDB>> | null = null;
 
 function getDB(): Promise<IDBPDatabase<DocumentDB>> {
-  if (!dbPromise) {
-    dbPromise = openDB<DocumentDB>(DB_NAME, DB_VERSION, {
-      upgrade(db) {
-        const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
-        store.createIndex('by-updatedAt', 'updatedAt');
-      },
-    });
-  }
+  dbPromise ??= openDB<DocumentDB>(DB_NAME, DB_VERSION, {
+    upgrade(db): void {
+      const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+      store.createIndex('by-updatedAt', 'updatedAt');
+    },
+  });
   return dbPromise;
 }
 
@@ -47,7 +45,7 @@ function isIndexedDBAvailable(): boolean {
 function getFromLocalStorage(): Document[] {
   try {
     const data = localStorage.getItem(FALLBACK_KEY);
-    return data ? JSON.parse(data) : [];
+    return data ? (JSON.parse(data) as Document[]) : [];
   } catch {
     return [];
   }
@@ -129,5 +127,5 @@ export async function getLastDocument(): Promise<Document | undefined> {
 }
 
 export function generateId(): string {
-  return `doc-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+  return `doc-${String(Date.now())}-${Math.random().toString(36).slice(2, 9)}`;
 }

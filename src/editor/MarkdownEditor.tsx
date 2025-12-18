@@ -1,28 +1,29 @@
-import Editor, { loader, OnMount } from '@monaco-editor/react';
+import Editor, { loader, type OnMount } from '@monaco-editor/react';
+import type { JSX } from 'react';
 import * as monaco from 'monaco-editor';
 
 // Configure Monaco to use local files instead of CDN
 loader.config({ monaco });
 
 interface MarkdownEditorProps {
-  value: string;
-  onChange: (value: string) => void;
-  theme: 'light' | 'dark';
-  onEditorMount?: (editor: monaco.editor.IStandaloneCodeEditor) => void;
-  onScroll?: () => void;
+  readonly value: string;
+  readonly onChange: (value: string) => void;
+  readonly theme: 'light' | 'dark';
+  readonly onEditorMount?: (editor: monaco.editor.IStandaloneCodeEditor) => void;
+  readonly onScroll?: () => void;
 }
 
-export function MarkdownEditor({ value, onChange, theme, onEditorMount, onScroll }: MarkdownEditorProps) {
-  const handleEditorChange = (newValue: string | undefined) => {
+export function MarkdownEditor({ value, onChange, theme, onEditorMount, onScroll }: MarkdownEditorProps): JSX.Element {
+  const handleEditorChange = (newValue: string | undefined): void => {
     onChange(newValue ?? '');
   };
 
-  const handleEditorMount: OnMount = (editor) => {
+  const handleEditorMount: OnMount = (editor): void => {
     if (onEditorMount) {
       onEditorMount(editor);
     }
     if (onScroll) {
-      editor.onDidScrollChange(() => {
+      editor.onDidScrollChange((): void => {
         onScroll();
       });
     }
@@ -55,3 +56,4 @@ export function MarkdownEditor({ value, onChange, theme, onEditorMount, onScroll
     </div>
   );
 }
+

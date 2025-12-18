@@ -3,8 +3,8 @@
  */
 
 export interface FileData {
-  content: string;
-  filename: string;
+  readonly content: string;
+  readonly filename: string;
 }
 
 /**
@@ -51,7 +51,7 @@ export async function openMarkdownFile(): Promise<FileData | null> {
  */
 function generateTimestamp(): string {
   const now = new Date();
-  const year = now.getFullYear();
+  const year = String(now.getFullYear());
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const day = String(now.getDate()).padStart(2, '0');
   const hours = String(now.getHours()).padStart(2, '0');
@@ -78,7 +78,7 @@ function removeExistingTimestamp(filename: string): string {
  * @param content - The markdown content to save
  * @param filename - The suggested filename (without extension)
  */
-export function saveMarkdownFile(content: string, filename: string = 'document'): void {
+export function saveMarkdownFile(content: string, filename = 'document'): void {
   // Remove .md extension if present
   let baseName = filename.endsWith('.md') ? filename.slice(0, -3) : filename;
   

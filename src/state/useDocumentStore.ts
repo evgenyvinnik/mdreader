@@ -13,16 +13,16 @@ const DEBOUNCE_DELAY = 500;
 const LAST_DOC_KEY = 'mdreader-last-document-id';
 
 interface DocumentStore {
-  document: Document | null;
-  documents: Document[];
-  isLoading: boolean;
-  createNewDocument: () => void;
-  updateContent: (content: string) => void;
-  updateTitle: (title: string) => void;
-  loadFromFile: (content: string, filename: string) => void;
-  loadDocument: (id: string) => Promise<void>;
-  deleteDocument: (id: string) => Promise<void>;
-  refreshDocuments: () => Promise<void>;
+  readonly document: Document | null;
+  readonly documents: Document[];
+  readonly isLoading: boolean;
+  readonly createNewDocument: () => void;
+  readonly updateContent: (content: string) => void;
+  readonly updateTitle: (title: string) => void;
+  readonly loadFromFile: (content: string, filename: string) => void;
+  readonly loadDocument: (id: string) => Promise<void>;
+  readonly deleteDocument: (id: string) => Promise<void>;
+  readonly refreshDocuments: () => Promise<void>;
 }
 
 // Generate title from first 5 words of content
@@ -30,7 +30,7 @@ function generateTitleFromContent(content: string): string {
   // Remove markdown headers and special characters
   const cleanContent = content
     .replace(/^#+\s*/gm, '') // Remove header markers
-    .replace(/[*_`~\[\]()]/g, '') // Remove markdown formatting
+    .replace(/[*_`~[\]()]/g, '') // Remove markdown formatting
     .replace(/\n+/g, ' ') // Replace newlines with spaces
     .trim();
   
@@ -38,7 +38,7 @@ function generateTitleFromContent(content: string): string {
   const first5Words = words.slice(0, 5).join(' ');
   
   if (first5Words.length === 0) {
-    return `Untitled-${Date.now()}`;
+    return `Untitled-${String(Date.now())}`;
   }
   
   // Truncate if too long and add ellipsis
@@ -51,14 +51,14 @@ export function useDocumentStore(): DocumentStore {
   const [isLoading, setIsLoading] = useState(true);
   const debounceRef = useRef<number | null>(null);
 
-  const refreshDocuments = useCallback(async () => {
+  const refreshDocuments = useCallback(async (): Promise<void> => {
     const docs = await getAllDocuments();
     setDocuments(docs);
   }, []);
 
   // Load document on mount
   useEffect(() => {
-    const loadDocument = async () => {
+    const loadDocument = async (): Promise<void> => {
       try {
         // Try to load the last document
         const lastDocId = localStorage.getItem(LAST_DOC_KEY);
@@ -69,9 +69,7 @@ export function useDocumentStore(): DocumentStore {
           doc = await getDocument(lastDocId);
         }
 
-        if (!doc) {
-          doc = await getLastDocument();
-        }
+        doc ??= await getLastDocument();
 
         if (doc) {
           setDocument(doc);
@@ -96,8 +94,8 @@ export function useDocumentStore(): DocumentStore {
       }
     };
 
-    loadDocument();
-  }, []);
+    void loadDocument();
+  }, [refreshDocuments]);
 
   // Debounced save
   const debouncedSave = useCallback((doc: Document) => {
@@ -188,9 +186,10 @@ export function useDocumentStore(): DocumentStore {
     // If we deleted the current document, load another one
     if (document?.id === id) {
       const docs = await getAllDocuments();
-      if (docs.length > 0) {
-        setDocument(docs[0]);
-        localStorage.setItem(LAST_DOC_KEY, docs[0].id);
+      const firstDoc = docs[0];
+      if (firstDoc) {
+        setDocument(firstDoc);
+        localStorage.setItem(LAST_DOC_KEY, firstDoc.id);
       } else {
         // Create a new document if all were deleted
         const newDoc: Document = {
