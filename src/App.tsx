@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { MarkdownEditor } from './editor/MarkdownEditor';
 import { MarkdownPreview } from './preview/MarkdownPreview';
 import { useDocumentStore } from './state/useDocumentStore';
+import { openMarkdownFile, saveMarkdownFile } from './utils/fileOperations';
 import './App.css';
 
 type Theme = 'light' | 'dark';
@@ -20,7 +21,7 @@ function getInitialTheme(): Theme {
 
 function App() {
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
-  const { document: doc, isLoading, createNewDocument, updateContent } =
+  const { document: doc, isLoading, createNewDocument, updateContent, loadFromFile } =
     useDocumentStore();
 
   useEffect(() => {
@@ -31,6 +32,19 @@ function App() {
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
+  const handleOpenFile = async () => {
+    const fileData = await openMarkdownFile();
+    if (fileData) {
+      loadFromFile(fileData.content, fileData.filename);
+    }
+  };
+
+  const handleSaveFile = () => {
+    if (doc) {
+      saveMarkdownFile(doc.content, doc.title);
+    }
   };
 
   if (isLoading) {
@@ -71,6 +85,48 @@ function App() {
               <line x1="9" y1="15" x2="15" y2="15" />
             </svg>
             <span>New</span>
+          </button>
+          <button
+            className="toolbar-button"
+            onClick={handleOpenFile}
+            title="Open .md file"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+            </svg>
+            <span>Open</span>
+          </button>
+          <button
+            className="toolbar-button"
+            onClick={handleSaveFile}
+            title="Save as .md file"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+              <polyline points="17 21 17 13 7 13 7 21" />
+              <polyline points="7 3 7 8 15 8" />
+            </svg>
+            <span>Save</span>
           </button>
           <button
             className="toolbar-button"
