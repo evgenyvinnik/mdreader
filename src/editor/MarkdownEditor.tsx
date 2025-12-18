@@ -51,6 +51,11 @@ export function MarkdownEditor({ value, onChange, theme, onEditorMount, onScroll
           folding: true,
           lineDecorationsWidth: 10,
           lineNumbersMinChars: 3,
+          unicodeHighlight: {
+            ambiguousCharacters: false,
+            invisibleCharacters: false,
+            nonBasicASCII: false,
+          },
         }}
       />
     </div>

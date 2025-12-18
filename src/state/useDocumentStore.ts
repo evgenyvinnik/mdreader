@@ -22,27 +22,20 @@ interface DocumentStore {
   readonly loadFromFile: (content: string, filename: string) => void;
   readonly loadDocument: (id: string) => Promise<void>;
   readonly deleteDocument: (id: string) => Promise<void>;
+  readonly renameDocument: (id: string, newTitle: string) => Promise<void>;
   readonly refreshDocuments: () => Promise<void>;
 }
 
-// Generate title from first 5 words of content
-function generateTitleFromContent(content: string): string {
-  // Remove markdown headers and special characters
-  const cleanContent = content
-    .replace(/^#+\s*/gm, '') // Remove header markers
-    .replace(/[*_`~[\]()]/g, '') // Remove markdown formatting
-    .replace(/\n+/g, ' ') // Replace newlines with spaces
-    .trim();
-  
-  const words = cleanContent.split(/\s+/).filter(word => word.length > 0);
-  const first5Words = words.slice(0, 5).join(' ');
-  
-  if (first5Words.length === 0) {
-    return `Untitled-${String(Date.now())}`;
-  }
-  
-  // Truncate if too long and add ellipsis
-  return first5Words.length > 50 ? first5Words.slice(0, 47) + '...' : first5Words;
+// Generate title with timestamp format: Untitled_YYYY-MM-DD_HHMMSS
+function generateTimestampTitle(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  return `Untitled_${year}-${month}-${day}_${hours}${minutes}${seconds}`;
 }
 
 export function useDocumentStore(): DocumentStore {
@@ -77,7 +70,7 @@ export function useDocumentStore(): DocumentStore {
           // Create a new document if none exists
           const newDoc: Document = {
             id: generateId(),
-            title: 'Untitled',
+            title: generateTimestampTitle(),
             content: '# Welcome to MD Reader\n\nStart writing your Markdown here...\n',
             updatedAt: Date.now(),
           };
@@ -115,7 +108,7 @@ export function useDocumentStore(): DocumentStore {
   const createNewDocument = useCallback(() => {
     const newDoc: Document = {
       id: generateId(),
-      title: 'Untitled',
+      title: generateTimestampTitle(),
       content: '',
       updatedAt: Date.now(),
     };
@@ -129,12 +122,7 @@ export function useDocumentStore(): DocumentStore {
     (content: string) => {
       setDocument((prev) => {
         if (!prev) return prev;
-        // Auto-generate title from content if still "Untitled"
-        let title = prev.title;
-        if (title === 'Untitled' && content.trim().length > 0) {
-          title = generateTitleFromContent(content);
-        }
-        const updated = { ...prev, content, title, updatedAt: Date.now() };
+        const updated = { ...prev, content, updatedAt: Date.now() };
         debouncedSave(updated);
         return updated;
       });
@@ -194,7 +182,7 @@ export function useDocumentStore(): DocumentStore {
         // Create a new document if all were deleted
         const newDoc: Document = {
           id: generateId(),
-          title: 'Untitled',
+          title: generateTimestampTitle(),
           content: '',
           updatedAt: Date.now(),
         };
@@ -202,6 +190,19 @@ export function useDocumentStore(): DocumentStore {
         localStorage.setItem(LAST_DOC_KEY, newDoc.id);
         setDocument(newDoc);
         await refreshDocuments();
+      }
+    }
+  }, [document?.id, refreshDocuments]);
+
+  const renameDocument = useCallback(async (id: string, newTitle: string) => {
+    const doc = await getDocument(id);
+    if (doc) {
+      const updatedDoc = { ...doc, title: newTitle, updatedAt: Date.now() };
+      await saveDocument(updatedDoc);
+      await refreshDocuments();
+      // If we renamed the current document, update state
+      if (document?.id === id) {
+        setDocument(updatedDoc);
       }
     }
   }, [document?.id, refreshDocuments]);
@@ -216,6 +217,7 @@ export function useDocumentStore(): DocumentStore {
     loadFromFile,
     loadDocument,
     deleteDocument,
+    renameDocument,
     refreshDocuments,
   };
 }
