@@ -1,10 +1,7 @@
 import { useState, useRef, useEffect, type JSX } from 'react';
 import type { Document } from '../storage/indexedDb';
-
-// Detect mobile devices using user agent
-function isMobileDevice(): boolean {
-  return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile|tablet/i.test(navigator.userAgent);
-}
+import { DocumentIcon, ChevronDownIcon, SearchIcon, EditIcon, TrashIcon } from './Icons';
+import { isMobileDevice } from '../utils/AppUtils';
 
 interface FileDropdownProps {
   readonly documents: Document[];
@@ -132,37 +129,11 @@ export function FileDropdown({
         onClick={() => { setIsOpen(!isOpen); }}
         title="Select document"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-          <polyline points="14 2 14 8 20 8" />
-        </svg>
+        <DocumentIcon size={16} />
         <span className="file-dropdown-current">
           {currentDoc?.title ?? 'Select file'}
         </span>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className={`chevron ${isOpen ? 'open' : ''}`}
-        >
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
+        <ChevronDownIcon size={14} className={`chevron ${isOpen ? 'open' : ''}`} />
       </button>
 
       {isOpen && (
@@ -176,20 +147,7 @@ export function FileDropdown({
           )}
           <div className="file-dropdown-menu">
             <div className="file-dropdown-search">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="11" cy="11" r="8" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
+              <SearchIcon size={14} />
               <input
                 ref={searchInputRef}
                 type="text"
@@ -239,39 +197,14 @@ export function FileDropdown({
                           onClick={(e) => { handleEditStart(e, doc); }}
                           title="Rename document"
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="14"
-                            height="14"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-                            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
-                          </svg>
+                          <EditIcon size={14} />
                         </button>
                         <button
                           className="file-dropdown-delete"
                           onClick={(e) => { handleDelete(e, doc.id); }}
                           title="Delete document"
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="14"
-                            height="14"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-                            <polyline points="3 6 5 6 21 6" />
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                          </svg>
+                          <TrashIcon size={14} />
                         </button>
                       </div>
                     )}
