@@ -1,4 +1,4 @@
-import Editor, { loader } from '@monaco-editor/react';
+import Editor, { loader, OnMount } from '@monaco-editor/react';
 import * as monaco from 'monaco-editor';
 
 // Configure Monaco to use local files instead of CDN
@@ -8,11 +8,24 @@ interface MarkdownEditorProps {
   value: string;
   onChange: (value: string) => void;
   theme: 'light' | 'dark';
+  onEditorMount?: (editor: monaco.editor.IStandaloneCodeEditor) => void;
+  onScroll?: () => void;
 }
 
-export function MarkdownEditor({ value, onChange, theme }: MarkdownEditorProps) {
+export function MarkdownEditor({ value, onChange, theme, onEditorMount, onScroll }: MarkdownEditorProps) {
   const handleEditorChange = (newValue: string | undefined) => {
     onChange(newValue ?? '');
+  };
+
+  const handleEditorMount: OnMount = (editor) => {
+    if (onEditorMount) {
+      onEditorMount(editor);
+    }
+    if (onScroll) {
+      editor.onDidScrollChange(() => {
+        onScroll();
+      });
+    }
   };
 
   return (
@@ -22,6 +35,7 @@ export function MarkdownEditor({ value, onChange, theme }: MarkdownEditorProps) 
         defaultLanguage="markdown"
         value={value}
         onChange={handleEditorChange}
+        onMount={handleEditorMount}
         theme={theme === 'dark' ? 'vs-dark' : 'vs'}
         options={{
           wordWrap: 'on',

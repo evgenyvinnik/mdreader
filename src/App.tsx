@@ -1,13 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { MarkdownEditor } from './editor/MarkdownEditor';
 import { MarkdownPreview } from './preview/MarkdownPreview';
 import { useDocumentStore } from './state/useDocumentStore';
 import { openMarkdownFile, saveMarkdownFile } from './utils/fileOperations';
 import './App.css';
+import type * as Monaco from 'monaco-editor';
 
 type Theme = 'light' | 'dark';
 
 const THEME_KEY = 'mdreader-theme';
+const SCROLL_LOCK_KEY = 'mdreader-scroll-lock';
 
 function getInitialTheme(): Theme {
   const stored = localStorage.getItem(THEME_KEY);
@@ -19,16 +21,80 @@ function getInitialTheme(): Theme {
   return 'light';
 }
 
+function getInitialScrollLock(): boolean {
+  const stored = localStorage.getItem(SCROLL_LOCK_KEY);
+  if (stored === 'false') return false;
+  return true; // Default to locked
+}
+
 function App() {
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
+  const [scrollLocked, setScrollLocked] = useState<boolean>(getInitialScrollLock);
   const { document: doc, isLoading, createNewDocument, updateContent, loadFromFile } =
     useDocumentStore();
+  
+  const editorRef = useRef<Monaco.editor.IStandaloneCodeEditor | null>(null);
+  const previewRef = useRef<HTMLDivElement | null>(null);
+  const isScrollingRef = useRef<'editor' | 'preview' | null>(null);
 
   useEffect(() => {
     // Apply theme to document root
     window.document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem(THEME_KEY, theme);
   }, [theme]);
+
+  useEffect(() => {
+    localStorage.setItem(SCROLL_LOCK_KEY, String(scrollLocked));
+  }, [scrollLocked]);
+
+  const handleEditorScroll = useCallback(() => {
+    if (!scrollLocked || isScrollingRef.current === 'preview') return;
+    
+    const editor = editorRef.current;
+    const preview = previewRef.current;
+    if (!editor || !preview) return;
+
+    isScrollingRef.current = 'editor';
+    
+    const scrollTop = editor.getScrollTop();
+    const scrollHeight = editor.getScrollHeight();
+    const clientHeight = editor.getLayoutInfo().height;
+    
+    const scrollPercentage = scrollTop / Math.max(1, scrollHeight - clientHeight);
+    
+    const previewScrollHeight = preview.scrollHeight - preview.clientHeight;
+    preview.scrollTop = scrollPercentage * previewScrollHeight;
+    
+    requestAnimationFrame(() => {
+      isScrollingRef.current = null;
+    });
+  }, [scrollLocked]);
+
+  const handlePreviewScroll = useCallback(() => {
+    if (!scrollLocked || isScrollingRef.current === 'editor') return;
+    
+    const editor = editorRef.current;
+    const preview = previewRef.current;
+    if (!editor || !preview) return;
+
+    isScrollingRef.current = 'preview';
+    
+    const scrollTop = preview.scrollTop;
+    const scrollHeight = preview.scrollHeight - preview.clientHeight;
+    
+    const scrollPercentage = scrollTop / Math.max(1, scrollHeight);
+    
+    const editorScrollHeight = editor.getScrollHeight() - editor.getLayoutInfo().height;
+    editor.setScrollTop(scrollPercentage * editorScrollHeight);
+    
+    requestAnimationFrame(() => {
+      isScrollingRef.current = null;
+    });
+  }, [scrollLocked]);
+
+  const toggleScrollLock = () => {
+    setScrollLocked((prev) => !prev);
+  };
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
@@ -129,6 +195,105 @@ function App() {
             <span>Save</span>
           </button>
           <button
+            className={`toolbar-button ${scrollLocked ? 'active' : ''}`}
+            onClick={toggleScrollLock}
+            title={scrollLocked ? 'Unlock scroll sync' : 'Lock scroll sync'}
+          >
+            {scrollLocked ? (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+            ) : (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 9.9-1" />
+              </svg>
+            )}
+            <span>{scrollLocked ? 'Locked' : 'Unlocked'}</span>
+          </button>
+          <div className="view-toggle">
+            <button
+              className={`view-toggle-button ${viewMode === 'editor' ? 'active' : ''}`}
+              onClick={() => setViewMode('editor')}
+              title="Editor only"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+              </svg>
+            </button>
+            <button
+              className={`view-toggle-button ${viewMode === 'both' ? 'active' : ''}`}
+              onClick={() => setViewMode('both')}
+              title="Split view"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <line x1="12" y1="3" x2="12" y2="21" />
+              </svg>
+            </button>
+            <button
+              className={`view-toggle-button ${viewMode === 'preview' ? 'active' : ''}`}
+              onClick={() => setViewMode('preview')}
+              title="Preview only"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            </button>
+          </div>
+          <button
             className="toolbar-button"
             onClick={toggleTheme}
             title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}
@@ -181,11 +346,18 @@ function App() {
             value={doc?.content ?? ''}
             onChange={updateContent}
             theme={theme}
+            onEditorMount={(editor) => { editorRef.current = editor; }}
+            onScroll={handleEditorScroll}
           />
         </div>
         <div className="pane preview-pane">
           <div className="pane-header">Preview</div>
-          <MarkdownPreview content={doc?.content ?? ''} theme={theme} />
+          <MarkdownPreview
+            content={doc?.content ?? ''}
+            theme={theme}
+            previewRef={previewRef}
+            onScroll={handlePreviewScroll}
+          />
         </div>
       </main>
     </div>

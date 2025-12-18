@@ -121,6 +121,17 @@ body,
   border-color: var(--accent-color);
 }
 
+.toolbar-button.active {
+  background-color: var(--accent-color);
+  border-color: var(--accent-color);
+  color: white;
+}
+
+.toolbar-button.active:hover {
+  background-color: var(--accent-color);
+  opacity: 0.9;
+}
+
 .toolbar-button svg {
   flex-shrink: 0;
 }

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, RefObject } from 'react';
 import MarkdownIt from 'markdown-it';
 import markdownItAnchor from 'markdown-it-anchor';
 import markdownItTaskLists from 'markdown-it-task-lists';
@@ -9,6 +9,8 @@ import DOMPurify from 'dompurify';
 interface MarkdownPreviewProps {
   content: string;
   theme: 'light' | 'dark';
+  previewRef?: RefObject<HTMLDivElement | null>;
+  onScroll?: () => void;
 }
 
 // Configure markdown-it with plugins
@@ -38,7 +40,7 @@ const md = new MarkdownIt({
   .use(markdownItTaskLists, { enabled: true, label: true })
   .use(markdownItEmoji);
 
-export function MarkdownPreview({ content, theme }: MarkdownPreviewProps) {
+export function MarkdownPreview({ content, theme, previewRef, onScroll }: MarkdownPreviewProps) {
   const renderedHtml = useMemo(() => {
     const rawHtml = md.render(content);
     // Sanitize the HTML output
@@ -49,7 +51,11 @@ export function MarkdownPreview({ content, theme }: MarkdownPreviewProps) {
   }, [content]);
 
   return (
-    <div className={`preview-container ${theme}`}>
+    <div
+      className={`preview-container ${theme}`}
+      ref={previewRef}
+      onScroll={onScroll}
+    >
       <div
         className="markdown-body"
         dangerouslySetInnerHTML={{ __html: renderedHtml }}

@@ -46,13 +46,48 @@ export async function openMarkdownFile(): Promise<FileData | null> {
 }
 
 /**
+ * Generates a timestamp string in the format YYYY-MM-DD_HHMMSS
+ * @returns Formatted timestamp string
+ */
+function generateTimestamp(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  
+  return `${year}-${month}-${day}_${hours}${minutes}${seconds}`;
+}
+
+/**
+ * Removes any existing timestamp suffix from a filename
+ * Timestamp format: _YYYY-MM-DD_HHMMSS
+ * @param filename - The filename to clean
+ * @returns Filename without timestamp suffix
+ */
+function removeExistingTimestamp(filename: string): string {
+  // Pattern matches _YYYY-MM-DD_HHMMSS at the end of the filename (before extension)
+  const timestampPattern = /_\d{4}-\d{2}-\d{2}_\d{6}$/;
+  return filename.replace(timestampPattern, '');
+}
+
+/**
  * Saves content as a .md file using the download mechanism
  * @param content - The markdown content to save
  * @param filename - The suggested filename (without extension)
  */
 export function saveMarkdownFile(content: string, filename: string = 'document'): void {
-  // Ensure .md extension
-  const finalFilename = filename.endsWith('.md') ? filename : `${filename}.md`;
+  // Remove .md extension if present
+  let baseName = filename.endsWith('.md') ? filename.slice(0, -3) : filename;
+  
+  // Remove any existing timestamp to avoid stacking timestamps
+  baseName = removeExistingTimestamp(baseName);
+  
+  // Generate new timestamp and create final filename
+  const timestamp = generateTimestamp();
+  const finalFilename = `${baseName}_${timestamp}.md`;
   
   const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
   const url = URL.createObjectURL(blob);
