@@ -16,14 +16,14 @@ export async function openMarkdownFile(): Promise<FileData | null> {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.md,.markdown,text/markdown';
-    
+
     input.onchange = async (event) => {
       const file = (event.target as HTMLInputElement).files?.[0];
       if (!file) {
         resolve(null);
         return;
       }
-      
+
       try {
         const content = await file.text();
         resolve({
@@ -35,12 +35,12 @@ export async function openMarkdownFile(): Promise<FileData | null> {
         resolve(null);
       }
     };
-    
+
     // Handle cancel event using addEventListener for better browser compatibility
     input.addEventListener('cancel', () => {
       resolve(null);
     });
-    
+
     input.click();
   });
 }
@@ -57,7 +57,7 @@ function generateTimestamp(): string {
   const hours = String(now.getHours()).padStart(2, '0');
   const minutes = String(now.getMinutes()).padStart(2, '0');
   const seconds = String(now.getSeconds()).padStart(2, '0');
-  
+
   return `${year}-${month}-${day}_${hours}${minutes}${seconds}`;
 }
 
@@ -81,26 +81,26 @@ function removeExistingTimestamp(filename: string): string {
 export function saveMarkdownFile(content: string, filename = 'document'): void {
   // Remove .md extension if present
   let baseName = filename.endsWith('.md') ? filename.slice(0, -3) : filename;
-  
+
   // Remove any existing timestamp to avoid stacking timestamps
   baseName = removeExistingTimestamp(baseName);
-  
+
   // Generate new timestamp and create final filename
   const timestamp = generateTimestamp();
   const finalFilename = `${baseName}_${timestamp}.md`;
-  
+
   const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
   const url = URL.createObjectURL(blob);
-  
+
   const link = document.createElement('a');
   link.href = url;
   link.download = finalFilename;
-  
+
   // Trigger download
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  
+
   // Cleanup
   URL.revokeObjectURL(url);
 }

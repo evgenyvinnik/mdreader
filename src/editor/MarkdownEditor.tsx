@@ -9,11 +9,19 @@ interface MarkdownEditorProps {
   readonly value: string;
   readonly onChange: (value: string) => void;
   readonly theme: 'light' | 'dark';
-  readonly onEditorMount?: (editor: monaco.editor.IStandaloneCodeEditor) => void;
+  readonly onEditorMount?: (
+    editor: monaco.editor.IStandaloneCodeEditor
+  ) => void;
   readonly onScroll?: () => void;
 }
 
-export function MarkdownEditor({ value, onChange, theme, onEditorMount, onScroll }: MarkdownEditorProps): JSX.Element {
+export function MarkdownEditor({
+  value,
+  onChange,
+  theme,
+  onEditorMount,
+  onScroll,
+}: MarkdownEditorProps): JSX.Element {
   const handleEditorChange = (newValue: string | undefined): void => {
     onChange(newValue ?? '');
   };
@@ -61,4 +69,3 @@ export function MarkdownEditor({ value, onChange, theme, onEditorMount, onScroll
     </div>
   );
 }
-

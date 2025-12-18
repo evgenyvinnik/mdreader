@@ -71,7 +71,8 @@ export function useDocumentStore(): DocumentStore {
           const newDoc: Document = {
             id: generateId(),
             title: generateTimestampTitle(),
-            content: '# Welcome to MD Reader\n\nStart writing your Markdown here...\n',
+            content:
+              '# Welcome to MD Reader\n\nStart writing your Markdown here...\n',
             updatedAt: Date.now(),
           };
           await saveDocument(newDoc);
@@ -168,44 +169,50 @@ export function useDocumentStore(): DocumentStore {
     }
   }, []);
 
-  const deleteDocument = useCallback(async (id: string) => {
-    await deleteDocumentFromDb(id);
-    await refreshDocuments();
-    // If we deleted the current document, load another one
-    if (document?.id === id) {
-      const docs = await getAllDocuments();
-      const firstDoc = docs[0];
-      if (firstDoc) {
-        setDocument(firstDoc);
-        localStorage.setItem(LAST_DOC_KEY, firstDoc.id);
-      } else {
-        // Create a new document if all were deleted
-        const newDoc: Document = {
-          id: generateId(),
-          title: generateTimestampTitle(),
-          content: '',
-          updatedAt: Date.now(),
-        };
-        await saveDocument(newDoc);
-        localStorage.setItem(LAST_DOC_KEY, newDoc.id);
-        setDocument(newDoc);
-        await refreshDocuments();
-      }
-    }
-  }, [document?.id, refreshDocuments]);
-
-  const renameDocument = useCallback(async (id: string, newTitle: string): Promise<void> => {
-    const doc = await getDocument(id);
-    if (doc) {
-      const updatedDoc = { ...doc, title: newTitle, updatedAt: Date.now() };
-      await saveDocument(updatedDoc);
+  const deleteDocument = useCallback(
+    async (id: string) => {
+      await deleteDocumentFromDb(id);
       await refreshDocuments();
-      // If we renamed the current document, update state
+      // If we deleted the current document, load another one
       if (document?.id === id) {
-        setDocument(updatedDoc);
+        const docs = await getAllDocuments();
+        const firstDoc = docs[0];
+        if (firstDoc) {
+          setDocument(firstDoc);
+          localStorage.setItem(LAST_DOC_KEY, firstDoc.id);
+        } else {
+          // Create a new document if all were deleted
+          const newDoc: Document = {
+            id: generateId(),
+            title: generateTimestampTitle(),
+            content: '',
+            updatedAt: Date.now(),
+          };
+          await saveDocument(newDoc);
+          localStorage.setItem(LAST_DOC_KEY, newDoc.id);
+          setDocument(newDoc);
+          await refreshDocuments();
+        }
       }
-    }
-  }, [document?.id, refreshDocuments]);
+    },
+    [document?.id, refreshDocuments]
+  );
+
+  const renameDocument = useCallback(
+    async (id: string, newTitle: string): Promise<void> => {
+      const doc = await getDocument(id);
+      if (doc) {
+        const updatedDoc = { ...doc, title: newTitle, updatedAt: Date.now() };
+        await saveDocument(updatedDoc);
+        await refreshDocuments();
+        // If we renamed the current document, update state
+        if (document?.id === id) {
+          setDocument(updatedDoc);
+        }
+      }
+    },
+    [document?.id, refreshDocuments]
+  );
 
   return {
     document,

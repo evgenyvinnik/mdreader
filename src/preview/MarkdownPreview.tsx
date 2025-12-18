@@ -21,7 +21,8 @@ const md = new MarkdownIt({
   highlight: (str: string, lang: string): string => {
     if (lang && hljs.getLanguage(lang)) {
       try {
-        return hljs.highlight(str, { language: lang, ignoreIllegals: true }).value;
+        return hljs.highlight(str, { language: lang, ignoreIllegals: true })
+          .value;
       } catch {
         // Fallback to default
       }
@@ -40,7 +41,12 @@ const md = new MarkdownIt({
   .use(markdownItTaskLists, { enabled: true, label: true })
   .use(markdownItEmoji as PluginSimple);
 
-export function MarkdownPreview({ content, theme, previewRef, onScroll }: MarkdownPreviewProps): JSX.Element {
+export function MarkdownPreview({
+  content,
+  theme,
+  previewRef,
+  onScroll,
+}: MarkdownPreviewProps): JSX.Element {
   const renderedHtml = useMemo((): string => {
     const rawHtml = md.render(content);
     // Sanitize the HTML output

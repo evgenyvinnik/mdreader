@@ -1,9 +1,9 @@
-import js from '@eslint/js'
-import globals from 'globals'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
-import tseslint from 'typescript-eslint'
-import { defineConfig, globalIgnores } from 'eslint/config'
+import js from '@eslint/js';
+import globals from 'globals';
+import reactHooks from 'eslint-plugin-react-hooks';
+import reactRefresh from 'eslint-plugin-react-refresh';
+import tseslint from 'typescript-eslint';
+import { defineConfig, globalIgnores } from 'eslint/config';
 
 export default defineConfig([
   globalIgnores(['dist']),
@@ -26,25 +26,34 @@ export default defineConfig([
     },
     rules: {
       // Require explicit return types on functions
-      '@typescript-eslint/explicit-function-return-type': ['error', {
-        allowExpressions: true,
-        allowTypedFunctionExpressions: true,
-        allowHigherOrderFunctions: true,
-      }],
+      '@typescript-eslint/explicit-function-return-type': [
+        'error',
+        {
+          allowExpressions: true,
+          allowTypedFunctionExpressions: true,
+          allowHigherOrderFunctions: true,
+        },
+      ],
       // Require explicit types on exported functions
       '@typescript-eslint/explicit-module-boundary-types': 'error',
       // Prefer readonly where possible
       '@typescript-eslint/prefer-readonly': 'error',
       // Consistent type assertions
-      '@typescript-eslint/consistent-type-assertions': ['error', {
-        assertionStyle: 'as',
-        objectLiteralTypeAssertions: 'never',
-      }],
+      '@typescript-eslint/consistent-type-assertions': [
+        'error',
+        {
+          assertionStyle: 'as',
+          objectLiteralTypeAssertions: 'never',
+        },
+      ],
       // Enforce consistent type imports
-      '@typescript-eslint/consistent-type-imports': ['error', {
-        prefer: 'type-imports',
-        fixStyle: 'inline-type-imports',
-      }],
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        {
+          prefer: 'type-imports',
+          fixStyle: 'inline-type-imports',
+        },
+      ],
       // Prefer nullish coalescing
       '@typescript-eslint/prefer-nullish-coalescing': 'error',
       // Prefer optional chaining
@@ -55,4 +64,4 @@ export default defineConfig([
       '@typescript-eslint/no-misused-promises': 'error',
     },
   },
-])
+]);

@@ -7,8 +7,12 @@ const VIEW_MODE_KEY = 'mdreader-view-mode';
 
 // Detect mobile devices using user agent and touch capability
 export function isMobileDevice(): boolean {
-  return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile|tablet/i.test(navigator.userAgent)
-    || (window.innerWidth <= 768 && 'ontouchstart' in window);
+  return (
+    /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile|tablet/i.test(
+      navigator.userAgent
+    ) ||
+    (window.innerWidth <= 768 && 'ontouchstart' in window)
+  );
 }
 
 export function getInitialTheme(): Theme {
@@ -23,7 +27,8 @@ export function getInitialTheme(): Theme {
 
 export function getInitialViewMode(): ViewMode {
   const stored = localStorage.getItem(VIEW_MODE_KEY);
-  if (stored === 'editor' || stored === 'preview' || stored === 'both') return stored;
+  if (stored === 'editor' || stored === 'preview' || stored === 'both')
+    return stored;
   // Default to preview on mobile devices, both on desktop
   if (isMobileDevice()) return 'preview';
   return 'both';

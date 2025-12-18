@@ -42,6 +42,6 @@ jobs:
       - name: Commit version bump
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "chore: auto-bump version to ${{ env.VERSION }}"
+          commit_message: 'chore: auto-bump version to ${{ env.VERSION }}'
           branch: ${{ github.ref_name }}
           file_pattern: package.json

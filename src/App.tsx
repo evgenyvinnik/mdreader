@@ -32,7 +32,8 @@ import type * as Monaco from 'monaco-editor';
 function App(): JSX.Element {
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
   const [viewMode, setViewMode] = useState<ViewMode>(getInitialViewMode);
-  const [scrollLocked, setScrollLocked] = useState<boolean>(getInitialScrollLock);
+  const [scrollLocked, setScrollLocked] =
+    useState<boolean>(getInitialScrollLock);
   const {
     document: doc,
     documents,
@@ -44,7 +45,7 @@ function App(): JSX.Element {
     deleteDocument,
     renameDocument,
   } = useDocumentStore();
-  
+
   const editorRef = useRef<Monaco.editor.IStandaloneCodeEditor | null>(null);
   const previewRef = useRef<HTMLDivElement | null>(null);
   const isScrollingRef = useRef<'editor' | 'preview' | null>(null);
@@ -63,24 +64,49 @@ function App(): JSX.Element {
     localStorage.setItem(VIEW_MODE_KEY, viewMode);
   }, [viewMode]);
 
+  // Handle files opened via PWA file handler
+  useEffect(() => {
+    if ('launchQueue' in window) {
+      interface LaunchParams {
+        files?: { getFile: () => Promise<File> }[];
+      }
+      interface LaunchQueue {
+        setConsumer: (callback: (params: LaunchParams) => void) => void;
+      }
+      const queue = (window as unknown as { launchQueue: LaunchQueue })
+        .launchQueue;
+      queue.setConsumer((launchParams) => {
+        const fileHandle = launchParams.files?.[0];
+        if (fileHandle) {
+          void fileHandle.getFile().then((file) => {
+            void file.text().then((content) => {
+              loadFromFile(content, file.name);
+            });
+          });
+        }
+      });
+    }
+  }, [loadFromFile]);
+
   const handleEditorScroll = useCallback(() => {
     if (!scrollLocked || isScrollingRef.current === 'preview') return;
-    
+
     const editor = editorRef.current;
     const preview = previewRef.current;
     if (!editor || !preview) return;
 
     isScrollingRef.current = 'editor';
-    
+
     const scrollTop = editor.getScrollTop();
     const scrollHeight = editor.getScrollHeight();
     const clientHeight = editor.getLayoutInfo().height;
-    
-    const scrollPercentage = scrollTop / Math.max(1, scrollHeight - clientHeight);
-    
+
+    const scrollPercentage =
+      scrollTop / Math.max(1, scrollHeight - clientHeight);
+
     const previewScrollHeight = preview.scrollHeight - preview.clientHeight;
     preview.scrollTop = scrollPercentage * previewScrollHeight;
-    
+
     requestAnimationFrame(() => {
       isScrollingRef.current = null;
     });
@@ -88,21 +114,22 @@ function App(): JSX.Element {
 
   const handlePreviewScroll = useCallback(() => {
     if (!scrollLocked || isScrollingRef.current === 'editor') return;
-    
+
     const editor = editorRef.current;
     const preview = previewRef.current;
     if (!editor || !preview) return;
 
     isScrollingRef.current = 'preview';
-    
+
     const scrollTop = preview.scrollTop;
     const scrollHeight = preview.scrollHeight - preview.clientHeight;
-    
+
     const scrollPercentage = scrollTop / Math.max(1, scrollHeight);
-    
-    const editorScrollHeight = editor.getScrollHeight() - editor.getLayoutInfo().height;
+
+    const editorScrollHeight =
+      editor.getScrollHeight() - editor.getLayoutInfo().height;
     editor.setScrollTop(scrollPercentage * editorScrollHeight);
-    
+
     requestAnimationFrame(() => {
       isScrollingRef.current = null;
     });
@@ -146,9 +173,15 @@ function App(): JSX.Element {
           <FileDropdown
             documents={documents}
             currentDocId={doc?.id}
-            onSelect={(id): void => { void loadDocument(id); }}
-            onDelete={(id): void => { void deleteDocument(id); }}
-            onRename={(id, newTitle): void => { void renameDocument(id, newTitle); }}
+            onSelect={(id): void => {
+              void loadDocument(id);
+            }}
+            onDelete={(id): void => {
+              void deleteDocument(id);
+            }}
+            onRename={(id, newTitle): void => {
+              void renameDocument(id, newTitle);
+            }}
           />
         </div>
         <div className="toolbar-right">
@@ -162,7 +195,9 @@ function App(): JSX.Element {
           </button>
           <button
             className="toolbar-button"
-            onClick={(): void => { void handleOpenFile(); }}
+            onClick={(): void => {
+              void handleOpenFile();
+            }}
             title="Open .md file"
           >
             <FolderIcon />
@@ -187,21 +222,27 @@ function App(): JSX.Element {
           <div className="view-toggle">
             <button
               className={`view-toggle-button ${viewMode === 'editor' ? 'active' : ''}`}
-              onClick={() => { setViewMode('editor'); }}
+              onClick={() => {
+                setViewMode('editor');
+              }}
               title="Editor only"
             >
               <EditIcon size={16} />
             </button>
             <button
               className={`view-toggle-button ${viewMode === 'both' ? 'active' : ''}`}
-              onClick={() => { setViewMode('both'); }}
+              onClick={() => {
+                setViewMode('both');
+              }}
               title="Split view"
             >
               <SplitViewIcon size={16} />
             </button>
             <button
               className={`view-toggle-button ${viewMode === 'preview' ? 'active' : ''}`}
-              onClick={() => { setViewMode('preview'); }}
+              onClick={() => {
+                setViewMode('preview');
+              }}
               title="Preview only"
             >
               <EyeIcon size={16} />
@@ -225,7 +266,9 @@ function App(): JSX.Element {
               value={doc?.content ?? ''}
               onChange={updateContent}
               theme={theme}
-              onEditorMount={(editor) => { editorRef.current = editor; }}
+              onEditorMount={(editor) => {
+                editorRef.current = editor;
+              }}
               onScroll={handleEditorScroll}
             />
           </div>

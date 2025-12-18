@@ -1,6 +1,6 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import { VitePWA } from 'vite-plugin-pwa'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { VitePWA } from 'vite-plugin-pwa';
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -13,9 +13,10 @@ export default defineConfig({
       manifest: {
         name: 'MD Reader - Markdown Editor',
         short_name: 'MD Reader',
-        description: 'A progressive web app for editing and previewing Markdown',
-        theme_color: '#0066cc',
-        background_color: '#ffffff',
+        description:
+          'A progressive web app for editing and previewing Markdown',
+        theme_color: '#1a1a1a',
+        background_color: '#1e1e1e',
         display: 'standalone',
         scope: '/mdreader/',
         start_url: '/mdreader/',
@@ -23,25 +24,33 @@ export default defineConfig({
           {
             src: 'pwa-192x192.png',
             sizes: '192x192',
-            type: 'image/png'
-          },
-          {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png'
+            type: 'image/png',
           },
           {
             src: 'pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable'
-          }
-        ]
+          },
+          {
+            src: 'pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable',
+          },
+        ],
+        file_handlers: [
+          {
+            action: '/mdreader/',
+            accept: {
+              'text/markdown': ['.md', '.markdown', '.mdown', '.mkd'],
+            },
+          },
+        ],
       },
       workbox: {
         maximumFileSizeToCacheInBytes: 8 * 1024 * 1024, // 8 MB to handle Monaco Editor
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}']
-      }
-    })
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+      },
+    }),
   ],
-})
+});

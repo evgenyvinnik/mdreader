@@ -1,6 +1,12 @@
 import { useState, useRef, useEffect, type JSX } from 'react';
 import type { Document } from '../storage/indexedDb';
-import { DocumentIcon, ChevronDownIcon, SearchIcon, EditIcon, TrashIcon } from './Icons';
+import {
+  DocumentIcon,
+  ChevronDownIcon,
+  SearchIcon,
+  EditIcon,
+  TrashIcon,
+} from './Icons';
 import { isMobileDevice } from '../utils/AppUtils';
 
 interface FileDropdownProps {
@@ -30,7 +36,10 @@ export function FileDropdown({
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent | TouchEvent): void => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
         setSearchQuery('');
         setEditingId(null);
@@ -123,24 +132,32 @@ export function FileDropdown({
   };
 
   return (
-    <div className={`file-dropdown ${isMobile ? 'is-mobile' : ''}`} ref={dropdownRef}>
+    <div
+      className={`file-dropdown ${isMobile ? 'is-mobile' : ''}`}
+      ref={dropdownRef}
+    >
       <button
         className="file-dropdown-trigger"
-        onClick={() => { setIsOpen(!isOpen); }}
+        onClick={() => {
+          setIsOpen(!isOpen);
+        }}
         title="Select document"
       >
         <DocumentIcon size={16} />
         <span className="file-dropdown-current">
           {currentDoc?.title ?? 'Select file'}
         </span>
-        <ChevronDownIcon size={14} className={`chevron ${isOpen ? 'open' : ''}`} />
+        <ChevronDownIcon
+          size={14}
+          className={`chevron ${isOpen ? 'open' : ''}`}
+        />
       </button>
 
       {isOpen && (
         <>
           {isMobile && (
-            <div 
-              className="file-dropdown-backdrop" 
+            <div
+              className="file-dropdown-backdrop"
               onClick={closeDropdown}
               onTouchStart={closeDropdown}
             />
@@ -153,7 +170,9 @@ export function FileDropdown({
                 type="text"
                 placeholder="Search files..."
                 value={searchQuery}
-                onChange={(e) => { setSearchQuery(e.target.value); }}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                }}
                 className="file-dropdown-search-input"
               />
             </div>
@@ -165,25 +184,36 @@ export function FileDropdown({
                   <div
                     key={doc.id}
                     className={`file-dropdown-item ${doc.id === currentDocId ? 'active' : ''}`}
-                    onClick={() => { if (!editingId) handleSelect(doc.id); }}
+                    onClick={() => {
+                      if (!editingId) handleSelect(doc.id);
+                    }}
                   >
                     <div className="file-dropdown-item-content">
                       {editingId === doc.id ? (
-                        <form onSubmit={handleEditSave} className="file-dropdown-edit-form">
+                        <form
+                          onSubmit={handleEditSave}
+                          className="file-dropdown-edit-form"
+                        >
                           <input
                             ref={editInputRef}
                             type="text"
                             value={editingTitle}
-                            onChange={(e) => { setEditingTitle(e.target.value); }}
+                            onChange={(e) => {
+                              setEditingTitle(e.target.value);
+                            }}
                             onKeyDown={handleEditKeyDown}
                             onBlur={handleEditSave}
                             className="file-dropdown-edit-input"
-                            onClick={(e) => { e.stopPropagation(); }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                            }}
                           />
                         </form>
                       ) : (
                         <>
-                          <span className="file-dropdown-item-title">{doc.title}</span>
+                          <span className="file-dropdown-item-title">
+                            {doc.title}
+                          </span>
                           <span className="file-dropdown-item-date">
                             {formatDate(doc.updatedAt)}
                           </span>
@@ -194,14 +224,18 @@ export function FileDropdown({
                       <div className="file-dropdown-actions">
                         <button
                           className="file-dropdown-edit"
-                          onClick={(e) => { handleEditStart(e, doc); }}
+                          onClick={(e) => {
+                            handleEditStart(e, doc);
+                          }}
                           title="Rename document"
                         >
                           <EditIcon size={14} />
                         </button>
                         <button
                           className="file-dropdown-delete"
-                          onClick={(e) => { handleDelete(e, doc.id); }}
+                          onClick={(e) => {
+                            handleDelete(e, doc.id);
+                          }}
                           title="Delete document"
                         >
                           <TrashIcon size={14} />
