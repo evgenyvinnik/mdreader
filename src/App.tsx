@@ -3,6 +3,7 @@ import { MarkdownEditor } from './editor/MarkdownEditor';
 import { MarkdownPreview } from './preview/MarkdownPreview';
 import { useDocumentStore } from './state/useDocumentStore';
 import { openMarkdownFile, saveMarkdownFile } from './utils/fileOperations';
+import { FileDropdown } from './components/FileDropdown';
 import './App.css';
 import type * as Monaco from 'monaco-editor';
 
@@ -39,8 +40,16 @@ function App() {
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
   const [viewMode, setViewMode] = useState<ViewMode>(getInitialViewMode);
   const [scrollLocked, setScrollLocked] = useState<boolean>(getInitialScrollLock);
-  const { document: doc, isLoading, createNewDocument, updateContent, loadFromFile } =
-    useDocumentStore();
+  const {
+    document: doc,
+    documents,
+    isLoading,
+    createNewDocument,
+    updateContent,
+    loadFromFile,
+    loadDocument,
+    deleteDocument,
+  } = useDocumentStore();
   
   const editorRef = useRef<Monaco.editor.IStandaloneCodeEditor | null>(null);
   const previewRef = useRef<HTMLDivElement | null>(null);
@@ -140,6 +149,12 @@ function App() {
       <header className="toolbar">
         <div className="toolbar-left">
           <h1 className="app-title">MD Reader</h1>
+          <FileDropdown
+            documents={documents}
+            currentDocId={doc?.id}
+            onSelect={loadDocument}
+            onDelete={deleteDocument}
+          />
         </div>
         <div className="toolbar-right">
           <button
