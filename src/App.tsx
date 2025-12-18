@@ -7,9 +7,11 @@ import './App.css';
 import type * as Monaco from 'monaco-editor';
 
 type Theme = 'light' | 'dark';
+type ViewMode = 'editor' | 'preview' | 'both';
 
 const THEME_KEY = 'mdreader-theme';
 const SCROLL_LOCK_KEY = 'mdreader-scroll-lock';
+const VIEW_MODE_KEY = 'mdreader-view-mode';
 
 function getInitialTheme(): Theme {
   const stored = localStorage.getItem(THEME_KEY);
@@ -21,6 +23,12 @@ function getInitialTheme(): Theme {
   return 'light';
 }
 
+function getInitialViewMode(): ViewMode {
+  const stored = localStorage.getItem(VIEW_MODE_KEY);
+  if (stored === 'editor' || stored === 'preview' || stored === 'both') return stored;
+  return 'both';
+}
+
 function getInitialScrollLock(): boolean {
   const stored = localStorage.getItem(SCROLL_LOCK_KEY);
   if (stored === 'false') return false;
@@ -29,6 +37,7 @@ function getInitialScrollLock(): boolean {
 
 function App() {
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
+  const [viewMode, setViewMode] = useState<ViewMode>(getInitialViewMode);
   const [scrollLocked, setScrollLocked] = useState<boolean>(getInitialScrollLock);
   const { document: doc, isLoading, createNewDocument, updateContent, loadFromFile } =
     useDocumentStore();
@@ -46,6 +55,10 @@ function App() {
   useEffect(() => {
     localStorage.setItem(SCROLL_LOCK_KEY, String(scrollLocked));
   }, [scrollLocked]);
+
+  useEffect(() => {
+    localStorage.setItem(VIEW_MODE_KEY, viewMode);
+  }, [viewMode]);
 
   const handleEditorScroll = useCallback(() => {
     if (!scrollLocked || isScrollingRef.current === 'preview') return;
@@ -339,26 +352,30 @@ function App() {
           </button>
         </div>
       </header>
-      <main className="main-content">
-        <div className="pane editor-pane">
-          <div className="pane-header">Editor</div>
-          <MarkdownEditor
-            value={doc?.content ?? ''}
-            onChange={updateContent}
-            theme={theme}
-            onEditorMount={(editor) => { editorRef.current = editor; }}
-            onScroll={handleEditorScroll}
-          />
-        </div>
-        <div className="pane preview-pane">
-          <div className="pane-header">Preview</div>
-          <MarkdownPreview
-            content={doc?.content ?? ''}
-            theme={theme}
-            previewRef={previewRef}
-            onScroll={handlePreviewScroll}
-          />
-        </div>
+      <main className={`main-content view-${viewMode}`}>
+        {(viewMode === 'editor' || viewMode === 'both') && (
+          <div className="pane editor-pane">
+            <div className="pane-header">Editor</div>
+            <MarkdownEditor
+              value={doc?.content ?? ''}
+              onChange={updateContent}
+              theme={theme}
+              onEditorMount={(editor) => { editorRef.current = editor; }}
+              onScroll={handleEditorScroll}
+            />
+          </div>
+        )}
+        {(viewMode === 'preview' || viewMode === 'both') && (
+          <div className="pane preview-pane">
+            <div className="pane-header">Preview</div>
+            <MarkdownPreview
+              content={doc?.content ?? ''}
+              theme={theme}
+              previewRef={previewRef}
+              onScroll={handlePreviewScroll}
+            />
+          </div>
+        )}
       </main>
     </div>
   );
