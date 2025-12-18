@@ -386,27 +386,6 @@ body,
     justify-content: center;
   }
 
-  .main-content {
-    flex-direction: column;
-  }
-
-  .pane {
-    border-right: none;
-    border-bottom: 1px solid var(--border-color);
-  }
-
-  .pane:last-child {
-    border-bottom: none;
-  }
-
-  .editor-pane {
-    flex: 0 0 50%;
-  }
-
-  .preview-pane {
-    flex: 0 0 50%;
-  }
-
   .toolbar-button span {
     display: none;
   }
@@ -423,56 +402,57 @@ body,
   .file-dropdown-trigger .file-dropdown-current {
     display: block;
   }
+}
 
-  .file-dropdown-backdrop {
-    display: block;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 999;
-    -webkit-tap-highlight-color: transparent;
-  }
+/* Mobile dropdown styles - triggered by JS mobile detection */
+.file-dropdown.is-mobile .file-dropdown-backdrop {
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  -webkit-tap-highlight-color: transparent;
+}
 
-  .file-dropdown-menu {
-    position: fixed;
-    top: auto;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    max-height: 70vh;
-    border-radius: 12px 12px 0 0;
-    margin-top: 0;
-    z-index: 1001;
-  }
+.file-dropdown.is-mobile .file-dropdown-menu {
+  position: fixed;
+  top: auto;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  max-height: 70vh;
+  border-radius: 12px 12px 0 0;
+  margin-top: 0;
+  z-index: 1001;
+}
 
-  .file-dropdown-list {
-    max-height: 55vh;
-    -webkit-overflow-scrolling: touch;
-  }
+.file-dropdown.is-mobile .file-dropdown-list {
+  max-height: 55vh;
+  -webkit-overflow-scrolling: touch;
+}
 
-  .file-dropdown-item {
-    padding: 0.75rem;
-    -webkit-tap-highlight-color: transparent;
-  }
+.file-dropdown.is-mobile .file-dropdown-item {
+  padding: 0.75rem;
+  -webkit-tap-highlight-color: transparent;
+}
 
-  .file-dropdown-item .file-dropdown-edit,
-  .file-dropdown-item .file-dropdown-delete {
-    opacity: 1;
-    width: 36px;
-    height: 36px;
-  }
+.file-dropdown.is-mobile .file-dropdown-item .file-dropdown-edit,
+.file-dropdown.is-mobile .file-dropdown-item .file-dropdown-delete {
+  opacity: 1;
+  width: 36px;
+  height: 36px;
+}
 
-  .file-dropdown-search {
-    padding: 1rem;
-  }
+.file-dropdown.is-mobile .file-dropdown-search {
+  padding: 1rem;
+}
 
-  .file-dropdown-search-input {
-    font-size: 16px; /* Prevents iOS zoom on focus */
-  }
+.file-dropdown.is-mobile .file-dropdown-search-input {
+  font-size: 16px; /* Prevents iOS zoom on focus */
 }
 
 /* Syntax highlighting - Light theme */

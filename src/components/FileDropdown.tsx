@@ -1,6 +1,11 @@
 import { useState, useRef, useEffect, type JSX } from 'react';
 import type { Document } from '../storage/indexedDb';
 
+// Detect mobile devices using user agent
+function isMobileDevice(): boolean {
+  return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile|tablet/i.test(navigator.userAgent);
+}
+
 interface FileDropdownProps {
   readonly documents: Document[];
   readonly currentDocId: string | undefined;
@@ -20,6 +25,7 @@ export function FileDropdown({
   const [searchQuery, setSearchQuery] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
+  const [isMobile] = useState(isMobileDevice);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const editInputRef = useRef<HTMLInputElement>(null);
@@ -113,8 +119,14 @@ export function FileDropdown({
 
   const currentDoc = documents.find((d) => d.id === currentDocId);
 
+  const closeDropdown = (): void => {
+    setIsOpen(false);
+    setSearchQuery('');
+    setEditingId(null);
+  };
+
   return (
-    <div className="file-dropdown" ref={dropdownRef}>
+    <div className={`file-dropdown ${isMobile ? 'is-mobile' : ''}`} ref={dropdownRef}>
       <button
         className="file-dropdown-trigger"
         onClick={() => { setIsOpen(!isOpen); }}
@@ -155,11 +167,13 @@ export function FileDropdown({
 
       {isOpen && (
         <>
-          <div 
-            className="file-dropdown-backdrop" 
-            onClick={() => { setIsOpen(false); setSearchQuery(''); setEditingId(null); }}
-            onTouchStart={() => { setIsOpen(false); setSearchQuery(''); setEditingId(null); }}
-          />
+          {isMobile && (
+            <div 
+              className="file-dropdown-backdrop" 
+              onClick={closeDropdown}
+              onTouchStart={closeDropdown}
+            />
+          )}
           <div className="file-dropdown-menu">
             <div className="file-dropdown-search">
               <svg

@@ -29,7 +29,7 @@ interface DocumentStore {
 // Generate title with timestamp format: Untitled_YYYY-MM-DD_HHMMSS
 function generateTimestampTitle(): string {
   const now = new Date();
-  const year = now.getFullYear();
+  const year = String(now.getFullYear());
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const day = String(now.getDate()).padStart(2, '0');
   const hours = String(now.getHours()).padStart(2, '0');
@@ -194,7 +194,7 @@ export function useDocumentStore(): DocumentStore {
     }
   }, [document?.id, refreshDocuments]);
 
-  const renameDocument = useCallback(async (id: string, newTitle: string) => {
+  const renameDocument = useCallback(async (id: string, newTitle: string): Promise<void> => {
     const doc = await getDocument(id);
     if (doc) {
       const updatedDoc = { ...doc, title: newTitle, updatedAt: Date.now() };
