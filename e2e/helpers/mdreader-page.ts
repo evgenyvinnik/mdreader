@@ -1,0 +1,420 @@
+import { type Page, type Locator, expect } from '@playwright/test';
+
+/**
+ * Page Object Model for MD Reader application
+ * Provides helper methods for interacting with UI elements
+ */
+export class MDReaderPage {
+  readonly page: Page;
+
+  // Toolbar elements
+  readonly appTitle: Locator;
+  readonly newButton: Locator;
+  readonly openButton: Locator;
+  readonly saveButton: Locator;
+  readonly lockButton: Locator;
+  readonly editorViewButton: Locator;
+  readonly splitViewButton: Locator;
+  readonly previewViewButton: Locator;
+  readonly themeButton: Locator;
+
+  // File dropdown elements
+  readonly fileDropdown: Locator;
+  readonly fileDropdownTrigger: Locator;
+  readonly fileDropdownMenu: Locator;
+  readonly fileSearchInput: Locator;
+
+  // Panes
+  readonly editorPane: Locator;
+  readonly previewPane: Locator;
+  readonly editorHeader: Locator;
+  readonly previewHeader: Locator;
+
+  // Monaco Editor
+  readonly monacoEditor: Locator;
+  readonly monacoTextArea: Locator;
+
+  // Preview content
+  readonly previewContent: Locator;
+
+  // Loading state
+  readonly loadingContainer: Locator;
+
+  constructor(page: Page) {
+    this.page = page;
+
+    // Toolbar
+    this.appTitle = page.locator('.app-title');
+    this.newButton = page.locator('button[title="New document"]');
+    this.openButton = page.locator('button[title="Open .md file"]');
+    this.saveButton = page.locator('button[title="Save as .md file"]');
+    this.lockButton = page.locator('button[title*="scroll sync"]');
+    this.editorViewButton = page.locator('button[title="Editor only"]');
+    this.splitViewButton = page.locator('button[title="Split view"]');
+    this.previewViewButton = page.locator('button[title="Preview only"]');
+    this.themeButton = page.locator('button[title*="Switch to"]');
+
+    // File dropdown
+    this.fileDropdown = page.locator('.file-dropdown');
+    this.fileDropdownTrigger = page.locator('.file-dropdown-trigger');
+    this.fileDropdownMenu = page.locator('.file-dropdown-menu');
+    this.fileSearchInput = page.locator('.file-dropdown-search input');
+
+    // Panes
+    this.editorPane = page.locator('.editor-pane');
+    this.previewPane = page.locator('.preview-pane');
+    this.editorHeader = page.locator('.editor-pane .pane-header');
+    this.previewHeader = page.locator('.preview-pane .pane-header');
+
+    // Monaco Editor
+    this.monacoEditor = page.locator('.monaco-editor');
+    this.monacoTextArea = page.locator('.monaco-editor textarea');
+
+    // Preview
+    this.previewContent = page.locator('.markdown-preview');
+
+    // Loading
+    this.loadingContainer = page.locator('.loading-container');
+  }
+
+  /**
+   * Navigate to the app and wait for it to load
+   */
+  async goto(): Promise<void> {
+    await this.page.goto('/');
+    await this.waitForAppLoad();
+  }
+
+  /**
+   * Wait for the app to fully load (loading spinner gone)
+   */
+  async waitForAppLoad(): Promise<void> {
+    // Wait for loading to disappear or not be present
+    await this.page.waitForFunction(() => {
+      const loading = document.querySelector('.loading-container');
+      return !loading;
+    }, { timeout: 30000 });
+    
+    // Wait for Monaco editor to be ready
+    await this.page.waitForFunction(() => {
+      const monaco = document.querySelector('.monaco-editor');
+      return monaco !== null;
+    }, { timeout: 30000 });
+  }
+
+  /**
+   * Clear localStorage and IndexedDB to reset app state
+   */
+  async resetAppState(): Promise<void> {
+    await this.page.evaluate(async () => {
+      localStorage.clear();
+      const dbs = await indexedDB.databases();
+      for (const db of dbs) {
+        if (db.name) {
+          indexedDB.deleteDatabase(db.name);
+        }
+      }
+    });
+  }
+
+  /**
+   * Get the current theme
+   */
+  async getTheme(): Promise<string> {
+    return await this.page.evaluate(() => {
+      return document.documentElement.getAttribute('data-theme') ?? 'dark';
+    });
+  }
+
+  /**
+   * Toggle the theme
+   */
+  async toggleTheme(): Promise<void> {
+    await this.themeButton.click();
+  }
+
+  /**
+   * Get the current view mode from the main content class
+   */
+  async getViewMode(): Promise<string> {
+    const mainContent = this.page.locator('.main-content');
+    const className = await mainContent.getAttribute('class');
+    if (className?.includes('view-editor')) return 'editor';
+    if (className?.includes('view-preview')) return 'preview';
+    return 'both';
+  }
+
+  /**
+   * Set the view mode
+   */
+  async setViewMode(mode: 'editor' | 'both' | 'preview'): Promise<void> {
+    const buttons = {
+      editor: this.editorViewButton,
+      both: this.splitViewButton,
+      preview: this.previewViewButton,
+    };
+    await buttons[mode].click();
+  }
+
+  /**
+   * Check if scroll is locked
+   */
+  async isScrollLocked(): Promise<boolean> {
+    const title = await this.lockButton.getAttribute('title');
+    return title?.includes('Unlock') ?? false;
+  }
+
+  /**
+   * Toggle scroll lock
+   */
+  async toggleScrollLock(): Promise<void> {
+    await this.lockButton.click();
+  }
+
+  /**
+   * Click the new document button
+   */
+  async createNewDocument(): Promise<void> {
+    await this.newButton.click();
+  }
+
+  /**
+   * Type content into the Monaco editor
+   */
+  async typeInEditor(text: string): Promise<void> {
+    // Click on the editor to focus it
+    await this.monacoEditor.click();
+    
+    // Wait for editor to be ready
+    await this.page.waitForTimeout(100);
+    
+    // Type the text
+    await this.page.keyboard.type(text, { delay: 10 });
+  }
+
+  /**
+   * Clear and set editor content using Monaco API
+   */
+  async setEditorContent(text: string): Promise<void> {
+    // Use Monaco API to set content directly
+    await this.page.evaluate((content) => {
+      const monaco = (window as unknown as { 
+        monaco?: { 
+          editor: { 
+            getEditors: () => Array<{ 
+              setValue: (value: string) => void;
+              focus: () => void;
+            }> 
+          } 
+        } 
+      }).monaco;
+      
+      const editor = monaco?.editor.getEditors()[0];
+      if (editor) {
+        editor.setValue(content);
+        editor.focus();
+      }
+    }, text);
+    
+    // Small delay for the editor to process
+    await this.page.waitForTimeout(100);
+  }
+
+  /**
+   * Get the editor content via Monaco API
+   */
+  async getEditorContent(): Promise<string> {
+    return await this.page.evaluate(() => {
+      // Access Monaco through window
+      const editor = (window as unknown as { monaco?: { editor: { getEditors: () => Array<{ getValue: () => string }> } } }).monaco?.editor.getEditors()[0];
+      return editor?.getValue() ?? '';
+    });
+  }
+
+  /**
+   * Get the preview HTML content
+   */
+  async getPreviewContent(): Promise<string> {
+    return await this.previewContent.innerHTML();
+  }
+
+  /**
+   * Get the preview text content
+   */
+  async getPreviewText(): Promise<string> {
+    return await this.previewContent.textContent() ?? '';
+  }
+
+  /**
+   * Open the file dropdown
+   */
+  async openFileDropdown(): Promise<void> {
+    await this.fileDropdownTrigger.click();
+    await expect(this.fileDropdownMenu).toBeVisible();
+  }
+
+  /**
+   * Close the file dropdown
+   */
+  async closeFileDropdown(): Promise<void> {
+    // Click outside the dropdown
+    await this.appTitle.click();
+  }
+
+  /**
+   * Search for a document in the dropdown
+   */
+  async searchDocument(query: string): Promise<void> {
+    await this.openFileDropdown();
+    await this.fileSearchInput.fill(query);
+  }
+
+  /**
+   * Get all document items in the dropdown
+   */
+  async getDocumentItems(): Promise<Locator> {
+    return this.page.locator('.file-dropdown-item');
+  }
+
+  /**
+   * Select a document from the dropdown by index
+   */
+  async selectDocumentByIndex(index: number): Promise<void> {
+    const items = this.page.locator('.file-dropdown-item');
+    await items.nth(index).click();
+  }
+
+  /**
+   * Delete a document from the dropdown by index
+   */
+  async deleteDocumentByIndex(index: number): Promise<void> {
+    const items = this.page.locator('.file-dropdown-item');
+    const deleteButton = items.nth(index).locator('.file-dropdown-delete');
+    
+    // Handle the confirmation dialog
+    this.page.on('dialog', async (dialog) => {
+      await dialog.accept();
+    });
+    
+    await deleteButton.click();
+  }
+
+  /**
+   * Start renaming a document by index
+   */
+  async startRenameDocumentByIndex(index: number): Promise<Locator> {
+    const items = this.page.locator('.file-dropdown-item');
+    const editButton = items.nth(index).locator('.file-dropdown-edit');
+    await editButton.click();
+    return this.page.locator('.file-dropdown-edit-input');
+  }
+
+  /**
+   * Get the current document title from the dropdown
+   */
+  async getCurrentDocumentTitle(): Promise<string> {
+    return await this.page.locator('.file-dropdown-current').textContent() ?? '';
+  }
+
+  /**
+   * Wait for preview to update with specific content
+   */
+  async waitForPreviewContent(expectedText: string, timeout = 5000): Promise<void> {
+    await expect(this.previewContent).toContainText(expectedText, { timeout });
+  }
+
+  /**
+   * Scroll the editor to a position
+   */
+  async scrollEditor(scrollTop: number): Promise<void> {
+    await this.page.evaluate((top) => {
+      const editor = (window as unknown as { monaco?: { editor: { getEditors: () => Array<{ setScrollTop: (top: number) => void }> } } }).monaco?.editor.getEditors()[0];
+      editor?.setScrollTop(top);
+    }, scrollTop);
+  }
+
+  /**
+   * Scroll the preview to a position
+   */
+  async scrollPreview(scrollTop: number): Promise<void> {
+    await this.previewContent.evaluate((el, top) => {
+      el.scrollTop = top;
+    }, scrollTop);
+  }
+
+  /**
+   * Get the preview scroll position
+   */
+  async getPreviewScrollTop(): Promise<number> {
+    return await this.previewContent.evaluate((el) => el.scrollTop);
+  }
+
+  /**
+   * Get the editor scroll position
+   */
+  async getEditorScrollTop(): Promise<number> {
+    return await this.page.evaluate(() => {
+      const editor = (window as unknown as { monaco?: { editor: { getEditors: () => Array<{ getScrollTop: () => number }> } } }).monaco?.editor.getEditors()[0];
+      return editor?.getScrollTop() ?? 0;
+    });
+  }
+
+  /**
+   * Check if a specific element is visible in viewport
+   */
+  async isElementInViewport(locator: Locator): Promise<boolean> {
+    return await locator.isVisible();
+  }
+}
+
+/**
+ * Test data constants
+ */
+export const TestContent = {
+  simple: '# Hello World\n\nThis is a test.',
+  
+  markdown: `# Heading 1
+## Heading 2
+### Heading 3
+
+This is a paragraph with **bold** and *italic* text.
+
+- List item 1
+- List item 2
+- List item 3
+
+1. Numbered item 1
+2. Numbered item 2
+
+> This is a blockquote
+
+\`\`\`javascript
+const hello = 'world';
+console.log(hello);
+\`\`\`
+
+[Link](https://example.com)
+
+![Image](image.png)
+`,
+
+  gfm: `# GitHub Flavored Markdown
+
+## Task Lists
+- [x] Completed task
+- [ ] Incomplete task
+
+## Tables
+| Column 1 | Column 2 |
+|----------|----------|
+| Cell 1   | Cell 2   |
+
+## Strikethrough
+~~deleted text~~
+
+## Emoji
+:smile: :heart: :+1:
+`,
+
+  longContent: Array(100).fill('# Line\n\nThis is paragraph content for testing scroll synchronization.\n\n').join(''),
+};
