@@ -11,10 +11,10 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: 'MD Reader - Markdown Editor',
-        short_name: 'MD Reader',
+        name: 'mdreader',
+        short_name: 'mdreader',
         description:
-          'A progressive web app for editing and previewing Markdown',
+          'An app for editing and previewing Markdown',
         theme_color: '#1a1a1a',
         background_color: '#1e1e1e',
         display: 'standalone',
