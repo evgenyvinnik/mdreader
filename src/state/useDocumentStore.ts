@@ -116,8 +116,8 @@ export function useDocumentStore(): DocumentStore {
 
   const loadFromFile = useCallback(
     (content: string, filename: string) => {
-      // Extract title from filename (remove .md extension)
-      const title = filename.replace(/\.md$/i, '').replace(/\.markdown$/i, '');
+      // Extract title from filename (remove .md or .markdown extension)
+      const title = filename.replace(/\.(md|markdown)$/i, '');
       const newDoc: Document = {
         id: generateId(),
         title,

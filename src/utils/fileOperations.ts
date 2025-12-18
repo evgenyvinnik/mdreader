@@ -36,9 +36,10 @@ export async function openMarkdownFile(): Promise<FileData | null> {
       }
     };
     
-    input.oncancel = () => {
+    // Handle cancel event using addEventListener for better browser compatibility
+    input.addEventListener('cancel', () => {
       resolve(null);
-    };
+    });
     
     input.click();
   });
