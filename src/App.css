@@ -251,6 +251,25 @@ body,
   background-color: var(--bg-primary);
 }
 
+/* Custom Scrollbar Styles */
+.preview-container::-webkit-scrollbar {
+  width: 14px;
+}
+
+.preview-container::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+.preview-container::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border: 3px solid var(--bg-secondary);
+  border-radius: 7px;
+}
+
+.preview-container::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
 .preview-container.dark {
   background-color: var(--bg-primary);
 }
