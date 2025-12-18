@@ -1,6 +1,6 @@
 # MD Reader
 
-A Progressive Web App (PWA) for editing and previewing Markdown in your browser.
+Dead simple Progressive Web App (PWA) for editing and previewing Markdown in your browser.
 
 ![MD Reader Light Theme](https://github.com/user-attachments/assets/150bb96b-6a8c-4833-a6ca-c262d8358b21)
 
