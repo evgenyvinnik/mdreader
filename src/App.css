@@ -350,6 +350,13 @@ body,
   overflow: hidden;
 }
 
+/* Mobile touch improvements for Monaco editor */
+.editor-container .monaco-editor {
+  -webkit-user-select: text;
+  user-select: text;
+  touch-action: manipulation;
+}
+
 /* Preview Container */
 .preview-container {
   flex: 1;

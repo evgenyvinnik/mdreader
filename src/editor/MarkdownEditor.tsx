@@ -78,6 +78,9 @@ export function MarkdownEditor({
           folding: true,
           lineDecorationsWidth: 10,
           lineNumbersMinChars: 3,
+          // Mobile touch optimizations
+          smoothScrolling: true,
+          selectOnLineNumbers: !isMobileDevice(),
           // Disable Monaco's custom context menu on mobile to allow native copy/paste
           contextmenu: !isMobileDevice(),
           unicodeHighlight: {
