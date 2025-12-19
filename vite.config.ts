@@ -4,7 +4,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/mdreader/',
+  base: '/',
   plugins: [
     react(),
     VitePWA({
@@ -18,8 +18,8 @@ export default defineConfig({
         theme_color: '#1a1a1a',
         background_color: '#1e1e1e',
         display: 'standalone',
-        scope: '/mdreader/',
-        start_url: '/mdreader/',
+        scope: '/',
+        start_url: '/',
         icons: [
           {
             src: 'pwa-192x192.png',
@@ -40,7 +40,7 @@ export default defineConfig({
         ],
         file_handlers: [
           {
-            action: '/mdreader/',
+            action: '/',
             accept: {
               'text/markdown': ['.md', '.markdown', '.mdown', '.mkd'],
             },
