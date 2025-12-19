@@ -499,15 +499,15 @@ body,
   .toolbar-button,
   .view-toggle-button,
   .mobile-clipboard-buttons .clipboard-button {
-    padding: 0.45rem;
+    padding: 0.35rem;
     flex-shrink: 0;
   }
 
   .toolbar-button svg,
   .view-toggle-button svg,
   .mobile-clipboard-buttons svg {
-    width: 20px;
-    height: 20px;
+    width: 21px;
+    height: 21px;
   }
 
   .file-dropdown-trigger {

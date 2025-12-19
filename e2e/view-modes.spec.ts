@@ -58,7 +58,8 @@ test.describe('View Modes', () => {
     test('should allow typing in editor', async ({ page }) => {
       await mdreader.setViewMode('editor');
       
-      await mdreader.typeInEditor('Test in editor only mode');
+      // Clear existing content first
+      await mdreader.setEditorContent('Test in editor only mode');
       
       // Content should be saved (verified when switching back to split view)
       await mdreader.setViewMode('both');

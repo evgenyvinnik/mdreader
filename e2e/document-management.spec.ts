@@ -246,21 +246,36 @@ test.describe('Document Management', () => {
       await mdreader.openFileDropdown();
       await page.waitForTimeout(200);
       
-      const editBtn = page.locator('.file-dropdown-item').first().locator('.file-dropdown-edit');
+      // Get the current document title first to know which item to select
+      const currentTitle = await mdreader.getCurrentDocumentTitle();
+      
+      // Find and click the item matching the current document
+      const currentDocItem = page.locator('.file-dropdown-item').filter({ hasText: currentTitle }).first();
+      const editBtn = currentDocItem.locator('.file-dropdown-edit');
       await editBtn.click();
-      await page.waitForTimeout(200);
+      await page.waitForTimeout(300);
       
       const editInput = page.locator('.file-dropdown-edit-input');
+      await expect(editInput).toBeVisible();
+      await expect(editInput).toBeFocused();
+      
+      // Clear the input and type new title
       await editInput.fill('New Document Title');
-      await page.keyboard.press('Enter');
-      
-      await page.waitForTimeout(500);
-      
-      // Check if the title was updated
-      await mdreader.openFileDropdown();
       await page.waitForTimeout(200);
-      const firstItemTitle = await page.locator('.file-dropdown-item').first().locator('.file-dropdown-item-title').textContent();
-      expect(firstItemTitle).toBe('New Document Title');
+      
+      // Verify the input has the correct value before pressing Enter
+      const inputValue = await editInput.inputValue();
+      expect(inputValue).toBe('New Document Title');
+      
+      // Submit by pressing Enter - the form should submit
+      await editInput.press('Enter');
+      
+      // Wait for the rename to be saved
+      await page.waitForTimeout(800);
+      
+      // Verify the new title is shown in the dropdown trigger (the visible title in toolbar)
+      const newTitleText = await mdreader.getCurrentDocumentTitle();
+      expect(newTitleText).toBe('New Document Title');
     });
 
     test('should cancel editing on Escape', async ({ page }) => {
