@@ -67,14 +67,6 @@ body,
 }
 
 /* Drag and Drop Overlay */
-.app.dragging {
-  pointer-events: none;
-}
-
-.app.dragging > * {
-  pointer-events: none;
-}
-
 .drop-overlay {
   position: absolute;
   top: 0;
@@ -86,7 +78,7 @@ body,
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  pointer-events: auto;
+  pointer-events: none;
 }
 
 .drop-overlay-content {

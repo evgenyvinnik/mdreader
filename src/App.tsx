@@ -69,6 +69,113 @@ function App(): JSX.Element {
     localStorage.setItem(VIEW_MODE_KEY, viewMode);
   }, [viewMode]);
 
+  // Handle drag and drop for .md files using native DOM events
+  useEffect(() => {
+    let dragCounter = 0;
+
+    const handleDragEnter = (e: DragEvent): void => {
+      e.preventDefault();
+      e.stopPropagation();
+      dragCounter++;
+      if (e.dataTransfer?.types.includes('Files')) {
+        setIsDragging(true);
+      }
+    };
+
+    const handleDragOver = (e: DragEvent): void => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.dataTransfer) {
+        e.dataTransfer.dropEffect = 'copy';
+      }
+    };
+
+    const handleDragLeave = (e: DragEvent): void => {
+      e.preventDefault();
+      e.stopPropagation();
+      dragCounter--;
+      if (dragCounter <= 0) {
+        dragCounter = 0;
+        setIsDragging(false);
+      }
+    };
+
+    const handleDrop = async (e: DragEvent): Promise<void> => {
+      e.preventDefault();
+      e.stopPropagation();
+      dragCounter = 0;
+      setIsDragging(false);
+
+      const files = e.dataTransfer?.files;
+      if (!files || files.length === 0) return;
+
+      // Find first markdown file
+      const mdFile = Array.from(files).find((f) => {
+        const name = f.name.toLowerCase();
+        return (
+          name.endsWith('.md') ||
+          name.endsWith('.markdown') ||
+          name.endsWith('.mdown') ||
+          name.endsWith('.mkd') ||
+          f.type === 'text/markdown'
+        );
+      });
+
+      if (mdFile) {
+        const fileData = await readDroppedFile(mdFile);
+        if (fileData) {
+          loadFromFile(fileData.content, fileData.filename);
+        }
+      }
+    };
+
+    // Handle drag end (when user releases outside window or presses Escape)
+    const handleDragEnd = (): void => {
+      dragCounter = 0;
+      setIsDragging(false);
+    };
+
+    // Handle when mouse leaves the document entirely (drag outside browser)
+    const handleMouseLeave = (e: MouseEvent): void => {
+      // Only reset if we're actually dragging and mouse left the document
+      if (e.relatedTarget === null && dragCounter > 0) {
+        dragCounter = 0;
+        setIsDragging(false);
+      }
+    };
+
+    // Handle Escape key to cancel drag
+    const handleKeyDown = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape' && dragCounter > 0) {
+        dragCounter = 0;
+        setIsDragging(false);
+      }
+    };
+
+    const dropHandler = (e: DragEvent): void => {
+      void handleDrop(e);
+    };
+
+    // Use document.body for reliable event capture
+    document.body.addEventListener('dragenter', handleDragEnter);
+    document.body.addEventListener('dragover', handleDragOver);
+    document.body.addEventListener('dragleave', handleDragLeave);
+    document.body.addEventListener('drop', dropHandler);
+    document.addEventListener('dragend', handleDragEnd);
+    document.documentElement.addEventListener('mouseleave', handleMouseLeave);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.removeEventListener('dragenter', handleDragEnter);
+      document.body.removeEventListener('dragover', handleDragOver);
+      document.body.removeEventListener('dragleave', handleDragLeave);
+      document.body.removeEventListener('drop', dropHandler);
+      document.removeEventListener('dragend', handleDragEnd);
+      document.documentElement.removeEventListener('mouseleave', handleMouseLeave);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [loadFromFile]);
+
   // Handle files opened via PWA file handler
   useEffect(() => {
     if ('launchQueue' in window) {
@@ -155,55 +262,6 @@ function App(): JSX.Element {
     }
   };
 
-  const handleDragOver = useCallback((e: React.DragEvent): void => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.dataTransfer.types.includes('Files')) {
-      setIsDragging(true);
-    }
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent): void => {
-    e.preventDefault();
-    e.stopPropagation();
-    // Only set dragging to false if we're leaving the app container
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX;
-    const y = e.clientY;
-    if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
-      setIsDragging(false);
-    }
-  }, []);
-
-  const handleDrop = useCallback(
-    async (e: React.DragEvent): Promise<void> => {
-      e.preventDefault();
-      e.stopPropagation();
-      setIsDragging(false);
-
-      const files = Array.from(e.dataTransfer.files);
-      // Find first markdown file (supports .md, .markdown, .mdown, .mkd)
-      const mdFile = files.find((f) => {
-        const name = f.name.toLowerCase();
-        return (
-          name.endsWith('.md') ||
-          name.endsWith('.markdown') ||
-          name.endsWith('.mdown') ||
-          name.endsWith('.mkd') ||
-          f.type === 'text/markdown'
-        );
-      });
-
-      if (mdFile) {
-        const fileData = await readDroppedFile(mdFile);
-        if (fileData) {
-          loadFromFile(fileData.content, fileData.filename);
-        }
-      }
-    },
-    [loadFromFile]
-  );
-
   const handleSaveFile = (): void => {
     if (doc) {
       saveMarkdownFile(doc.content, doc.title);
@@ -220,14 +278,7 @@ function App(): JSX.Element {
   }
 
   return (
-    <div
-      className={`app ${theme}${isDragging ? ' dragging' : ''}`}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={(e): void => {
-        void handleDrop(e);
-      }}
-    >
+    <div className={`app ${theme}${isDragging ? ' dragging' : ''}`}>
       {isDragging && (
         <div className="drop-overlay">
           <div className="drop-overlay-content">
