@@ -29,7 +29,11 @@ import {
   EyeIcon,
   SunIcon,
   MoonIcon,
+  CutIcon,
+  CopyIcon,
+  PasteIcon,
 } from './components/Icons';
+import { isMobileDevice } from './utils/AppUtils';
 import './App.css';
 import type * as Monaco from 'monaco-editor';
 
@@ -255,6 +259,47 @@ function App(): JSX.Element {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
+  // Mobile clipboard handlers
+  const handleCut = async (): Promise<void> => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    
+    const selection = editor.getSelection();
+    if (!selection || selection.isEmpty()) return;
+    
+    const selectedText = editor.getModel()?.getValueInRange(selection) ?? '';
+    if (selectedText) {
+      await navigator.clipboard.writeText(selectedText);
+      editor.executeEdits('cut', [{ range: selection, text: '' }]);
+    }
+  };
+
+  const handleCopy = async (): Promise<void> => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    
+    const selection = editor.getSelection();
+    if (!selection || selection.isEmpty()) return;
+    
+    const selectedText = editor.getModel()?.getValueInRange(selection) ?? '';
+    if (selectedText) {
+      await navigator.clipboard.writeText(selectedText);
+    }
+  };
+
+  const handlePaste = async (): Promise<void> => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    
+    const text = await navigator.clipboard.readText();
+    if (text) {
+      const selection = editor.getSelection();
+      if (selection) {
+        editor.executeEdits('paste', [{ range: selection, text }]);
+      }
+    }
+  };
+
   const handleOpenFile = async (): Promise<void> => {
     const fileData = await openMarkdownFile();
     if (fileData) {
@@ -305,32 +350,65 @@ function App(): JSX.Element {
           />
         </div>
         <div className="toolbar-right">
-          <button
-            className="toolbar-button"
-            onClick={createNewDocument}
-            title="New document"
-          >
-            <NewDocumentIcon />
-            <span>New</span>
-          </button>
-          <button
-            className="toolbar-button"
-            onClick={(): void => {
-              void handleOpenFile();
-            }}
-            title="Open .md file"
-          >
-            <FolderIcon />
-            <span>Open</span>
-          </button>
-          <button
-            className="toolbar-button"
-            onClick={handleSaveFile}
-            title="Save as .md file"
-          >
-            <SaveIcon />
-            <span>Save</span>
-          </button>
+          <div className="file-buttons">
+            <button
+              className="toolbar-button"
+              onClick={createNewDocument}
+              title="New document"
+            >
+              <NewDocumentIcon />
+              <span>New</span>
+            </button>
+            <button
+              className="toolbar-button"
+              onClick={(): void => {
+                void handleOpenFile();
+              }}
+              title="Open .md file"
+            >
+              <FolderIcon />
+              <span>Open</span>
+            </button>
+            <button
+              className="toolbar-button"
+              onClick={handleSaveFile}
+              title="Save as .md file"
+            >
+              <SaveIcon />
+              <span>Save</span>
+            </button>
+          </div>
+          {isMobileDevice() && (
+            <div className="mobile-clipboard-buttons">
+              <button
+                className="toolbar-button clipboard-button"
+                onClick={(): void => {
+                  void handleCut();
+                }}
+                title="Cut"
+              >
+                <CutIcon size={16} />
+              </button>
+              <button
+                className="toolbar-button clipboard-button"
+                onClick={(): void => {
+                  void handleCopy();
+                }}
+                title="Copy"
+              >
+                <CopyIcon size={16} />
+              </button>
+              <button
+                className="toolbar-button clipboard-button"
+                onClick={(): void => {
+                  void handlePaste();
+                }}
+                title="Paste"
+              >
+                <PasteIcon size={16} />
+              </button>
+            </div>
+          )}
           <button
             className={`toolbar-button ${scrollLocked ? 'active' : ''}`}
             onClick={toggleScrollLock}

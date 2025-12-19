@@ -93,6 +93,11 @@ test.describe('Scroll Synchronization', () => {
       // Unlock scroll
       await mdreader.toggleScrollLock();
       await page.waitForTimeout(200);
+      
+      // Reset scroll positions to 0 before each test
+      await mdreader.scrollEditor(0);
+      await mdreader.scrollPreview(0);
+      await page.waitForTimeout(200);
     });
 
     test('should not sync preview when editor scrolls', async ({ page }) => {
@@ -120,7 +125,7 @@ test.describe('Scroll Synchronization', () => {
     });
 
     test('should allow independent scrolling of editor', async ({ page }) => {
-      // First scroll preview to verify it doesn't sync back
+      // Get initial scroll positions (should be 0 from beforeEach)
       const initialPreviewScroll = await mdreader.getPreviewScrollTop();
       
       await mdreader.scrollEditor(300);

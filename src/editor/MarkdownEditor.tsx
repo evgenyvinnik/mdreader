@@ -6,6 +6,16 @@ import { isMobileDevice } from '../utils/AppUtils';
 // Configure Monaco to use local files instead of CDN
 loader.config({ monaco });
 
+// Expose Monaco globally for testing purposes
+declare global {
+  interface Window {
+    monaco?: typeof monaco;
+  }
+}
+if (typeof window !== 'undefined') {
+  window.monaco = monaco;
+}
+
 interface MarkdownEditorProps {
   readonly value: string;
   readonly onChange: (value: string) => void;
@@ -60,6 +70,8 @@ export function MarkdownEditor({
           folding: true,
           lineDecorationsWidth: 10,
           lineNumbersMinChars: 3,
+          // Disable Monaco's custom context menu on mobile to allow native copy/paste
+          contextmenu: !isMobileDevice(),
           unicodeHighlight: {
             ambiguousCharacters: false,
             invisibleCharacters: false,

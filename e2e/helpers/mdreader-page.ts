@@ -194,32 +194,27 @@ export class MDReaderPage {
 
   /**
    * Clear and set editor content 
-   * Uses keyboard input to trigger React state updates properly
+   * Uses Monaco's setValue and triggers model content changed event
    */
   async setEditorContent(text: string): Promise<void> {
-    // Click on the editor to focus it
-    await this.monacoEditor.click();
-    await this.page.waitForTimeout(200);
-    
-    // Select all (Ctrl+A works in Monaco regardless of platform)
-    await this.page.keyboard.down('Control');
-    await this.page.keyboard.press('KeyA');
-    await this.page.keyboard.up('Control');
-    await this.page.waitForTimeout(100);
-    
-    // For short content, type it directly (20ms delay is safer for special chars)
-    // For long content (>200 chars), use clipboard paste
-    if (text.length <= 200) {
-      await this.page.keyboard.type(text, { delay: 20 });
-    } else {
-      // Use clipboard for long content
-      await this.page.evaluate((content) => {
-        navigator.clipboard.writeText(content);
-      }, text);
-      await this.page.keyboard.down('Control');
-      await this.page.keyboard.press('KeyV');
-      await this.page.keyboard.up('Control');
-    }
+    // Use Monaco's setValue which triggers onDidChangeModelContent 
+    // which in turn triggers the onChange callback in React
+    await this.page.evaluate((content) => {
+      const win = window as unknown as { 
+        monaco?: { 
+          editor: { 
+            getEditors: () => Array<{ 
+              setValue: (value: string) => void;
+              getModel: () => { getValue: () => string } | null;
+            }> 
+          } 
+        } 
+      };
+      const editor = win.monaco?.editor.getEditors()[0];
+      if (editor) {
+        editor.setValue(content);
+      }
+    }, text);
     
     // Wait for content to be processed and preview to update
     await this.page.waitForTimeout(500);
@@ -231,7 +226,8 @@ export class MDReaderPage {
    */
   async setEditorContentAndWaitFor(text: string, selector: string, timeout = 10000): Promise<void> {
     await this.setEditorContent(text);
-    await this.page.locator(selector).waitFor({ state: 'visible', timeout });
+    // Use .first() to handle cases where the selector matches multiple elements
+    await this.page.locator(selector).first().waitFor({ state: 'visible', timeout });
   }
 
   /**
@@ -339,14 +335,34 @@ export class MDReaderPage {
 
   /**
    * Scroll the editor to a position
+   * Note: We need to trigger the scroll event manually since programmatic setScrollTop
+   * may not always trigger onDidScrollChange in the same way user scrolling does
    */
   async scrollEditor(scrollTop: number): Promise<void> {
     await this.page.evaluate((top) => {
-      const editor = (window as unknown as { monaco?: { editor: { getEditors: () => Array<{ setScrollTop: (top: number) => void }> } } }).monaco?.editor.getEditors()[0];
-      editor?.setScrollTop(top);
+      const monaco = (window as unknown as { 
+        monaco?: { 
+          editor: { 
+            getEditors: () => Array<{ 
+              setScrollTop: (top: number) => void;
+              trigger: (source: string, handlerId: string, payload?: unknown) => void;
+            }> 
+          } 
+        } 
+      }).monaco;
+      const editor = monaco?.editor.getEditors()[0];
+      if (editor) {
+        editor.setScrollTop(top);
+        // Force scroll action trigger by using Monaco's internal trigger
+        try {
+          editor.trigger('test', 'scrollbar.updateScroll', {});
+        } catch {
+          // Ignore if trigger doesn't exist
+        }
+      }
     }, scrollTop);
     // Wait for scroll event to propagate
-    await this.page.waitForTimeout(100);
+    await this.page.waitForTimeout(150);
   }
 
   /**
@@ -359,7 +375,7 @@ export class MDReaderPage {
       el.dispatchEvent(new Event('scroll', { bubbles: true }));
     }, scrollTop);
     // Wait for scroll event to propagate
-    await this.page.waitForTimeout(100);
+    await this.page.waitForTimeout(150);
   }
 
   /**

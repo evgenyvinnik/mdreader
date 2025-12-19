@@ -460,8 +460,12 @@ body,
 
   .toolbar-right {
     width: 100%;
-    flex-wrap: wrap;
+    display: flex;
+    flex-wrap: nowrap;
     justify-content: center;
+    gap: 0.25rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .toolbar-button span {
@@ -469,7 +473,13 @@ body,
   }
 
   .toolbar-button {
-    padding: 0.5rem;
+    padding: 0.45rem;
+    flex-shrink: 0;
+  }
+
+  .toolbar-button svg {
+    width: 20px;
+    height: 20px;
   }
 
   .file-dropdown-trigger {
@@ -479,6 +489,64 @@ body,
 
   .file-dropdown-trigger .file-dropdown-current {
     display: block;
+  }
+
+  /* File buttons group (New, Open, Save) */
+  .file-buttons {
+    display: flex;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .file-buttons .toolbar-button {
+    border: none;
+    border-radius: 0;
+    border-right: 1px solid var(--border-color);
+  }
+
+  .file-buttons .toolbar-button:last-child {
+    border-right: none;
+  }
+
+  /* Mobile clipboard buttons */
+  .mobile-clipboard-buttons {
+    display: flex;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .mobile-clipboard-buttons .clipboard-button {
+    border: none;
+    border-radius: 0;
+    border-right: 1px solid var(--border-color);
+    padding: 0.4rem;
+  }
+
+  .mobile-clipboard-buttons .clipboard-button:last-child {
+    border-right: none;
+  }
+
+  .mobile-clipboard-buttons .clipboard-button svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  /* View toggle on mobile */
+  .view-toggle {
+    flex-shrink: 0;
+  }
+
+  .view-toggle-button {
+    padding: 0.4rem;
+  }
+
+  .view-toggle-button svg {
+    width: 19px;
+    height: 19px;
   }
 }
 
