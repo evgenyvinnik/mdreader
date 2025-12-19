@@ -378,37 +378,6 @@ function App(): JSX.Element {
               <span>Save</span>
             </button>
           </div>
-          {isMobileDevice() && (
-            <div className="mobile-clipboard-buttons">
-              <button
-                className="toolbar-button clipboard-button"
-                onClick={(): void => {
-                  void handleCut();
-                }}
-                title="Cut"
-              >
-                <CutIcon size={16} />
-              </button>
-              <button
-                className="toolbar-button clipboard-button"
-                onClick={(): void => {
-                  void handleCopy();
-                }}
-                title="Copy"
-              >
-                <CopyIcon size={16} />
-              </button>
-              <button
-                className="toolbar-button clipboard-button"
-                onClick={(): void => {
-                  void handlePaste();
-                }}
-                title="Paste"
-              >
-                <PasteIcon size={16} />
-              </button>
-            </div>
-          )}
           <button
             className={`toolbar-button ${scrollLocked ? 'active' : ''}`}
             onClick={toggleScrollLock}
@@ -459,7 +428,40 @@ function App(): JSX.Element {
       <main className={`main-content view-${viewMode}`}>
         {(viewMode === 'editor' || viewMode === 'both') && (
           <div className="pane editor-pane">
-            <div className="pane-header">Editor</div>
+            <div className="pane-header">
+              <span>Editor</span>
+              {isMobileDevice() && (
+                <div className="pane-header-actions">
+                  <button
+                    className="pane-header-button"
+                    onClick={(): void => {
+                      void handleCut();
+                    }}
+                    title="Cut"
+                  >
+                    <CutIcon />
+                  </button>
+                  <button
+                    className="pane-header-button"
+                    onClick={(): void => {
+                      void handleCopy();
+                    }}
+                    title="Copy"
+                  >
+                    <CopyIcon />
+                  </button>
+                  <button
+                    className="pane-header-button"
+                    onClick={(): void => {
+                      void handlePaste();
+                    }}
+                    title="Paste"
+                  >
+                    <PasteIcon />
+                  </button>
+                </div>
+              )}
+            </div>
             <MarkdownEditor
               value={doc?.content ?? ''}
               onChange={updateContent}

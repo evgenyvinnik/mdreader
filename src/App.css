@@ -289,7 +289,11 @@ body,
 }
 
 .pane-header {
-  padding: 0.5rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1rem;
+  height: 2rem;
   background-color: var(--pane-header-bg);
   border-bottom: 1px solid var(--border-color);
   font-size: 0.75rem;
@@ -297,6 +301,47 @@ body,
   text-transform: uppercase;
   color: var(--text-secondary);
   flex-shrink: 0;
+}
+
+.pane-header-actions {
+  display: flex;
+  gap: 0;
+  height: 100%;
+  border-left: 1px solid var(--border-color);
+  margin-right: -1rem;
+}
+
+.pane-header-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.5rem;
+  height: 100%;
+  background-color: transparent;
+  border: none;
+  border-right: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.pane-header-button:last-child {
+  border-right: none;
+}
+
+.pane-header-button svg {
+  width: 21px;
+  height: 21px;
+}
+
+.pane-header-button:hover {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.pane-header-button:active {
+  background-color: var(--accent-color);
+  color: var(--bg-primary);
 }
 
 /* Editor Container */
@@ -497,15 +542,13 @@ body,
 
   /* Unified mobile button styles */
   .toolbar-button,
-  .view-toggle-button,
-  .mobile-clipboard-buttons .clipboard-button {
+  .view-toggle-button {
     padding: 0.35rem;
     flex-shrink: 0;
   }
 
   .toolbar-button svg,
-  .view-toggle-button svg,
-  .mobile-clipboard-buttons svg {
+  .view-toggle-button svg {
     width: 21px;
     height: 21px;
   }
@@ -521,7 +564,6 @@ body,
 
   /* Button groups on mobile - shared styles */
   .file-buttons,
-  .mobile-clipboard-buttons,
   .view-toggle {
     display: flex;
     gap: 0;
@@ -531,15 +573,13 @@ body,
     flex-shrink: 0;
   }
 
-  .file-buttons .toolbar-button,
-  .mobile-clipboard-buttons .clipboard-button {
+  .file-buttons .toolbar-button {
     border: none;
     border-radius: 0;
     border-right: 1px solid var(--border-color);
   }
 
-  .file-buttons .toolbar-button:last-child,
-  .mobile-clipboard-buttons .clipboard-button:last-child {
+  .file-buttons .toolbar-button:last-child {
     border-right: none;
   }
 }
