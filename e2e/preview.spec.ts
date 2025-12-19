@@ -288,7 +288,7 @@ test.describe('Preview Rendering', () => {
     });
 
     test('should render nested lists', async ({ page }) => {
-      await mdreader.setEditorContent('- Parent\\n  - Child 1\\n  - Child 2');
+      await mdreader.setEditorContent('- Parent\n  - Child 1\n  - Child 2');
       await page.waitForTimeout(500);
       
       const nestedUl = page.locator('.markdown-body ul ul');

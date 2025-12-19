@@ -1,5 +1,5 @@
 import Editor, { loader, type OnMount } from '@monaco-editor/react';
-import type { JSX } from 'react';
+import { type JSX, useRef, useEffect } from 'react';
 import * as monaco from 'monaco-editor';
 import { isMobileDevice } from '../utils/AppUtils';
 
@@ -33,6 +33,13 @@ export function MarkdownEditor({
   onEditorMount,
   onScroll,
 }: MarkdownEditorProps): JSX.Element {
+  // Use ref to always have the latest onScroll callback
+  const onScrollRef = useRef(onScroll);
+  
+  useEffect(() => {
+    onScrollRef.current = onScroll;
+  }, [onScroll]);
+
   const handleEditorChange = (newValue: string | undefined): void => {
     onChange(newValue ?? '');
   };
@@ -41,11 +48,12 @@ export function MarkdownEditor({
     if (onEditorMount) {
       onEditorMount(editor);
     }
-    if (onScroll) {
-      editor.onDidScrollChange((): void => {
-        onScroll();
-      });
-    }
+    // Use a wrapper that calls the ref to get the latest callback
+    editor.onDidScrollChange((): void => {
+      if (onScrollRef.current) {
+        onScrollRef.current();
+      }
+    });
   };
 
   return (

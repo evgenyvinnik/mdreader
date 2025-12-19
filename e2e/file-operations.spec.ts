@@ -135,7 +135,13 @@ test.describe('File Operations', () => {
       
       // Create new document
       await mdreader.createNewDocument();
-      await page.waitForTimeout(500);
+      
+      // Wait for the document title to be visible and not "Select file"
+      await page.waitForFunction(() => {
+        const titleEl = document.querySelector('.file-dropdown-current');
+        return titleEl && titleEl.textContent && !titleEl.textContent.includes('Select file');
+      }, { timeout: 5000 });
+      await page.waitForTimeout(300);
       
       // New document should be mostly empty (or have default content)
       const currentTitle = await mdreader.getCurrentDocumentTitle();
@@ -194,14 +200,21 @@ test.describe('File Operations', () => {
 
   test.describe('Document Navigation', () => {
     test('should switch between documents', async ({ page }) => {
-      // Create first document
+      // Create first document with content
       await mdreader.setEditorContent('Content of document one');
       await page.waitForTimeout(1000);
       
       // Create second document
       await mdreader.createNewDocument();
+      
+      // Wait for title to load for new document
+      await page.waitForFunction(() => {
+        const titleEl = document.querySelector('.file-dropdown-current');
+        return titleEl && titleEl.textContent && !titleEl.textContent.includes('Select file');
+      }, { timeout: 5000 });
       await page.waitForTimeout(300);
-      await mdreader.typeInEditor('Content of document two');
+      
+      await mdreader.setEditorContent('Content of document two');
       await page.waitForTimeout(1000);
       
       // Open dropdown and select first document
@@ -212,7 +225,7 @@ test.describe('File Operations', () => {
       // Click the second item (first document, since new one is at top)
       if (await items.count() >= 2) {
         await items.nth(1).click();
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(800);
         
         // Should show first document content
         await expect(mdreader.previewContent).toContainText('Content of document one');

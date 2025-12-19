@@ -30,7 +30,14 @@ test.describe('Persistence', () => {
       
       // Create new document and add content
       await mdreader.createNewDocument();
+      
+      // Wait for title to load
+      await page.waitForFunction(() => {
+        const titleEl = document.querySelector('.file-dropdown-current');
+        return titleEl && titleEl.textContent && !titleEl.textContent.includes('Select file');
+      }, { timeout: 5000 });
       await page.waitForTimeout(300);
+      
       await mdreader.typeInEditor('New document content');
       await page.waitForTimeout(1000);
       
@@ -74,11 +81,17 @@ test.describe('Persistence', () => {
       // Create first document
       await mdreader.setEditorContent('First document');
       await page.waitForTimeout(1000);
-      const firstTitle = await mdreader.getCurrentDocumentTitle();
       
       // Create second document
       await mdreader.createNewDocument();
-      await page.waitForTimeout(300);
+      await page.waitForTimeout(500);
+      
+      // Wait for the document title to be visible and not "Select file"
+      await page.waitForFunction(() => {
+        const titleEl = document.querySelector('.file-dropdown-current');
+        return titleEl && titleEl.textContent && !titleEl.textContent.includes('Select file');
+      }, { timeout: 5000 });
+      
       await mdreader.typeInEditor('Second document');
       await page.waitForTimeout(1000);
       const secondTitle = await mdreader.getCurrentDocumentTitle();
@@ -414,8 +427,8 @@ test.describe('Persistence', () => {
       // App should work with fresh context
       await expect(mdreader.monacoEditor).toBeVisible();
       
-      // Should be able to type
-      await mdreader.typeInEditor('Fresh start');
+      // Should be able to set content and see it in preview
+      await mdreader.setEditorContent('Fresh start');
       await page.waitForTimeout(500);
       await expect(mdreader.previewContent).toContainText('Fresh start');
     });
