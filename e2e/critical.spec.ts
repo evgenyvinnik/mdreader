@@ -111,8 +111,10 @@ test.describe('Critical Smoke Tests @critical', () => {
     await mdreader.setEditorContent('[Example](https://example.com)');
     await page.waitForTimeout(500);
     
-    const link = page.locator('.markdown-body a[href="https://example.com"]');
+    const link = page.locator('.markdown-body a');
     await expect(link).toBeVisible();
+    await expect(link).toHaveAttribute('href', 'https://example.com');
+    await expect(link).toHaveText('Example');
   });
 
   test('lists render correctly', async ({ page }) => {

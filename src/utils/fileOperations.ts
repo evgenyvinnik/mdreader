@@ -8,6 +8,19 @@ export interface FileData {
 }
 
 /**
+ * Supported markdown file extensions
+ */
+const MARKDOWN_EXTENSIONS = ['.md', '.markdown', '.mdown', '.mkd'];
+
+/**
+ * Check if a filename has a markdown extension
+ */
+function isMarkdownFile(filename: string): boolean {
+  const lowerName = filename.toLowerCase();
+  return MARKDOWN_EXTENSIONS.some((ext) => lowerName.endsWith(ext));
+}
+
+/**
  * Opens a file picker dialog and reads the selected .md file
  * @returns Promise with file content and filename, or null if cancelled
  */
@@ -15,7 +28,7 @@ export async function openMarkdownFile(): Promise<FileData | null> {
   return new Promise((resolve) => {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = '.md,.markdown,text/markdown';
+    input.accept = '.md,.markdown,.mdown,.mkd,text/markdown';
 
     input.onchange = async (event) => {
       const file = (event.target as HTMLInputElement).files?.[0];
@@ -71,6 +84,29 @@ function removeExistingTimestamp(filename: string): string {
   // Pattern matches _YYYY-MM-DD_HHMMSS at the end of the filename (before extension)
   const timestampPattern = /_\d{4}-\d{2}-\d{2}_\d{6}$/;
   return filename.replace(timestampPattern, '');
+}
+
+/**
+ * Reads a dropped File object and returns its content
+ * @param file - The dropped File object
+ * @returns Promise with file content and filename, or null if invalid
+ */
+export async function readDroppedFile(file: File): Promise<FileData | null> {
+  // Check if it's a markdown file
+  if (!isMarkdownFile(file.name) && file.type !== 'text/markdown') {
+    return null;
+  }
+
+  try {
+    const content = await file.text();
+    return {
+      content,
+      filename: file.name,
+    };
+  } catch (error) {
+    console.error('Failed to read dropped file:', error);
+    return null;
+  }
 }
 
 /**

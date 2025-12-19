@@ -2,7 +2,11 @@ import { useState, useEffect, useRef, useCallback, type JSX } from 'react';
 import { MarkdownEditor } from './editor/MarkdownEditor';
 import { MarkdownPreview } from './preview/MarkdownPreview';
 import { useDocumentStore } from './state/useDocumentStore';
-import { openMarkdownFile, saveMarkdownFile } from './utils/fileOperations';
+import {
+  openMarkdownFile,
+  saveMarkdownFile,
+  readDroppedFile,
+} from './utils/fileOperations';
 import {
   type Theme,
   type ViewMode,
@@ -34,6 +38,7 @@ function App(): JSX.Element {
   const [viewMode, setViewMode] = useState<ViewMode>(getInitialViewMode);
   const [scrollLocked, setScrollLocked] =
     useState<boolean>(getInitialScrollLock);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
   const {
     document: doc,
     documents,
@@ -150,6 +155,55 @@ function App(): JSX.Element {
     }
   };
 
+  const handleDragOver = useCallback((e: React.DragEvent): void => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer.types.includes('Files')) {
+      setIsDragging(true);
+    }
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent): void => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only set dragging to false if we're leaving the app container
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX;
+    const y = e.clientY;
+    if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
+      setIsDragging(false);
+    }
+  }, []);
+
+  const handleDrop = useCallback(
+    async (e: React.DragEvent): Promise<void> => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragging(false);
+
+      const files = Array.from(e.dataTransfer.files);
+      // Find first markdown file (supports .md, .markdown, .mdown, .mkd)
+      const mdFile = files.find((f) => {
+        const name = f.name.toLowerCase();
+        return (
+          name.endsWith('.md') ||
+          name.endsWith('.markdown') ||
+          name.endsWith('.mdown') ||
+          name.endsWith('.mkd') ||
+          f.type === 'text/markdown'
+        );
+      });
+
+      if (mdFile) {
+        const fileData = await readDroppedFile(mdFile);
+        if (fileData) {
+          loadFromFile(fileData.content, fileData.filename);
+        }
+      }
+    },
+    [loadFromFile]
+  );
+
   const handleSaveFile = (): void => {
     if (doc) {
       saveMarkdownFile(doc.content, doc.title);
@@ -166,7 +220,22 @@ function App(): JSX.Element {
   }
 
   return (
-    <div className={`app ${theme}`}>
+    <div
+      className={`app ${theme}${isDragging ? ' dragging' : ''}`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={(e): void => {
+        void handleDrop(e);
+      }}
+    >
+      {isDragging && (
+        <div className="drop-overlay">
+          <div className="drop-overlay-content">
+            <div className="drop-icon">📄</div>
+            <p>Drop .md file to open</p>
+          </div>
+        </div>
+      )}
       <header className="toolbar">
         <div className="toolbar-left">
           <h1 className="app-title">MD Reader</h1>
