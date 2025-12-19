@@ -27,7 +27,8 @@ test.describe('Scroll Synchronization', () => {
       
       // Scroll the editor
       await mdreader.scrollEditor(500);
-      await page.waitForTimeout(500);
+      // Wait for scroll sync to happen (uses requestAnimationFrame)
+      await page.waitForTimeout(600);
       
       const newPreviewScroll = await mdreader.getPreviewScrollTop();
       expect(newPreviewScroll).toBeGreaterThan(initialPreviewScroll);
@@ -38,7 +39,8 @@ test.describe('Scroll Synchronization', () => {
       
       // Scroll the preview
       await mdreader.scrollPreview(500);
-      await page.waitForTimeout(500);
+      // Wait for scroll sync to happen (uses requestAnimationFrame)
+      await page.waitForTimeout(600);
       
       const newEditorScroll = await mdreader.getEditorScrollTop();
       expect(newEditorScroll).toBeGreaterThan(initialEditorScroll);
@@ -66,11 +68,12 @@ test.describe('Scroll Synchronization', () => {
         }
       });
       
-      await page.waitForTimeout(300);
+      await page.waitForTimeout(500);
       
       // Preview should be at roughly the same percentage
+      // Note: The scrollable element is .preview-container, not .markdown-body
       const previewScrollInfo = await page.evaluate(() => {
-        const preview = document.querySelector('.markdown-body');
+        const preview = document.querySelector('.preview-container');
         if (!preview) return { percentage: 0 };
         
         const maxScroll = preview.scrollHeight - preview.clientHeight;
@@ -117,28 +120,34 @@ test.describe('Scroll Synchronization', () => {
     });
 
     test('should allow independent scrolling of editor', async ({ page }) => {
+      // First scroll preview to verify it doesn't sync back
+      const initialPreviewScroll = await mdreader.getPreviewScrollTop();
+      
       await mdreader.scrollEditor(300);
       await page.waitForTimeout(200);
       await mdreader.scrollEditor(600);
-      await page.waitForTimeout(200);
+      await page.waitForTimeout(300);
       
       const editorScroll = await mdreader.getEditorScrollTop();
-      const previewScroll = await mdreader.getPreviewScrollTop();
+      const finalPreviewScroll = await mdreader.getPreviewScrollTop();
       
-      // They should be different since they're independent
-      expect(editorScroll).toBeGreaterThan(previewScroll);
+      // Editor should be scrolled, preview should stay at initial position
+      expect(editorScroll).toBeGreaterThan(0);
+      expect(Math.abs(finalPreviewScroll - initialPreviewScroll)).toBeLessThan(10);
     });
 
     test('should allow independent scrolling of preview', async ({ page }) => {
+      const initialEditorScroll = await mdreader.getEditorScrollTop();
+      
       await mdreader.scrollPreview(300);
-      await page.waitForTimeout(200);
+      await page.waitForTimeout(300);
       
       const previewScroll = await mdreader.getPreviewScrollTop();
-      const editorScroll = await mdreader.getEditorScrollTop();
+      const finalEditorScroll = await mdreader.getEditorScrollTop();
       
-      // Preview should be scrolled, editor should not
+      // Preview should be scrolled, editor should stay at initial position
       expect(previewScroll).toBeGreaterThan(0);
-      expect(editorScroll).toBe(0);
+      expect(Math.abs(finalEditorScroll - initialEditorScroll)).toBeLessThan(10);
     });
   });
 

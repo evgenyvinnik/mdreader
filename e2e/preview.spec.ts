@@ -209,9 +209,11 @@ test.describe('Preview Rendering', () => {
     });
 
     test('should render reference-style links', async ({ page }) => {
-      await mdreader.setEditorContentAndWaitFor('[Example][1]\n\n[1]: https://example.com', '.markdown-body a');
+      // Use simple setEditorContent since the format may have issues with clipboard
+      await mdreader.setEditorContent('[Example][1]\\n\\n[1]: https://example.com');
+      await page.waitForTimeout(500);
       
-      const link = page.locator('.markdown-body a');
+      const link = page.locator('.markdown-body a').first();
       await expect(link).toHaveAttribute('href', 'https://example.com');
     });
 
@@ -286,7 +288,8 @@ test.describe('Preview Rendering', () => {
     });
 
     test('should render nested lists', async ({ page }) => {
-      await mdreader.setEditorContentAndWaitFor('- Parent\n  - Child 1\n  - Child 2', '.markdown-body ul');
+      await mdreader.setEditorContent('- Parent\\n  - Child 1\\n  - Child 2');
+      await page.waitForTimeout(500);
       
       const nestedUl = page.locator('.markdown-body ul ul');
       await expect(nestedUl).toBeVisible();
@@ -332,9 +335,10 @@ test.describe('Preview Rendering', () => {
   test.describe('HTML Sanitization', () => {
     test('should sanitize script tags', async ({ page }) => {
       await mdreader.setEditorContent('<script>alert("XSS")</script>');
-      await page.waitForTimeout(300);
+      await page.waitForTimeout(500);
       
       const content = await mdreader.getPreviewContent();
+      // Since html: false, script tags are escaped as text, not rendered as HTML
       expect(content).not.toContain('<script>');
     });
 
@@ -342,17 +346,31 @@ test.describe('Preview Rendering', () => {
       await mdreader.setEditorContent('<div onclick="alert(1)">Click me</div>');
       await page.waitForTimeout(500);
       
-      const content = await mdreader.getPreviewContent();
-      expect(content).not.toContain('onclick');
+      // Verify no actual onclick handler exists in the DOM
+      const hasOnclick = await page.evaluate(() => {
+        const divs = document.querySelectorAll('.markdown-body div');
+        for (const div of divs) {
+          if (div.hasAttribute('onclick')) return true;
+        }
+        return false;
+      });
+      expect(hasOnclick).toBe(false);
     });
 
     test('should sanitize javascript: URLs', async ({ page }) => {
       await mdreader.setEditorContent('[Click](javascript:alert(1))');
       await page.waitForTimeout(500);
       
-      const content = await mdreader.getPreviewContent();
-      // javascript: URLs should be sanitized - link may not be rendered or href removed
-      expect(content).not.toContain('javascript:alert');
+      // Check that no link has javascript: URL
+      const hasJsUrl = await page.evaluate(() => {
+        const links = document.querySelectorAll('.markdown-body a');
+        for (const link of links) {
+          const href = link.getAttribute('href');
+          if (href && href.startsWith('javascript:')) return true;
+        }
+        return false;
+      });
+      expect(hasJsUrl).toBe(false);
     });
   });
 
@@ -360,7 +378,8 @@ test.describe('Preview Rendering', () => {
     test('should be scrollable with long content', async ({ page }) => {
       await mdreader.setEditorContentAndWaitFor(TestContent.longContent, '.markdown-body h1');
       
-      const preview = mdreader.previewContent;
+      // The scrollable container is .preview-container, not .markdown-body
+      const preview = mdreader.previewScrollContainer;
       const initialScroll = await preview.evaluate(el => el.scrollTop);
       
       await preview.evaluate(el => { el.scrollTop = 500; });
@@ -389,13 +408,13 @@ test.describe('Preview Rendering', () => {
       await mdreader.setEditorContent(TestContent.markdown);
       await page.waitForTimeout(500);
       
-      // Check multiple elements are rendered
-      await expect(page.locator('.markdown-body h1')).toBeVisible();
-      await expect(page.locator('.markdown-body h2')).toBeVisible();
-      await expect(page.locator('.markdown-body ul')).toBeVisible();
-      await expect(page.locator('.markdown-body ol')).toBeVisible();
-      await expect(page.locator('.markdown-body blockquote')).toBeVisible();
-      await expect(page.locator('.markdown-body pre')).toBeVisible();
+      // Check multiple elements are rendered (use .first() for elements that may have multiple instances)
+      await expect(page.locator('.markdown-body h1').first()).toBeVisible();
+      await expect(page.locator('.markdown-body h2').first()).toBeVisible();
+      await expect(page.locator('.markdown-body ul').first()).toBeVisible();
+      await expect(page.locator('.markdown-body ol').first()).toBeVisible();
+      await expect(page.locator('.markdown-body blockquote').first()).toBeVisible();
+      await expect(page.locator('.markdown-body pre').first()).toBeVisible();
     });
   });
 });

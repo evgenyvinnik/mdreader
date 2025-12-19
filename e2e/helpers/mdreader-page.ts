@@ -99,10 +99,11 @@ export class MDReaderPage {
       return !loading;
     }, { timeout: 30000 });
     
-    // Wait for Monaco editor to be ready
+    // Wait for either Monaco editor OR preview container (for preview-only mode)
     await this.page.waitForFunction(() => {
       const monaco = document.querySelector('.monaco-editor');
-      return monaco !== null;
+      const preview = document.querySelector('.preview-container');
+      return monaco !== null || preview !== null;
     }, { timeout: 30000 });
   }
 
@@ -344,6 +345,8 @@ export class MDReaderPage {
       const editor = (window as unknown as { monaco?: { editor: { getEditors: () => Array<{ setScrollTop: (top: number) => void }> } } }).monaco?.editor.getEditors()[0];
       editor?.setScrollTop(top);
     }, scrollTop);
+    // Wait for scroll event to propagate
+    await this.page.waitForTimeout(100);
   }
 
   /**
@@ -352,7 +355,11 @@ export class MDReaderPage {
   async scrollPreview(scrollTop: number): Promise<void> {
     await this.previewScrollContainer.evaluate((el, top) => {
       el.scrollTop = top;
+      // Dispatch scroll event to trigger sync
+      el.dispatchEvent(new Event('scroll', { bubbles: true }));
     }, scrollTop);
+    // Wait for scroll event to propagate
+    await this.page.waitForTimeout(100);
   }
 
   /**

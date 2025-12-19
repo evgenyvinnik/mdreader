@@ -166,19 +166,21 @@ test.describe('Theme Toggle', () => {
 
   test.describe('Theme Styling', () => {
     test('should apply different background colors for themes', async ({ page }) => {
-      // Get background in current theme
-      const initialBg = await page.evaluate(() => 
-        getComputedStyle(document.body).backgroundColor
-      );
+      // Get background color from the .app element (not body, which may be transparent)
+      const initialBg = await page.evaluate(() => {
+        const app = document.querySelector('.app');
+        return app ? getComputedStyle(app).backgroundColor : '';
+      });
       
       // Toggle theme
       await mdreader.toggleTheme();
       await page.waitForTimeout(500);
       
       // Get background in new theme
-      const newBg = await page.evaluate(() => 
-        getComputedStyle(document.body).backgroundColor
-      );
+      const newBg = await page.evaluate(() => {
+        const app = document.querySelector('.app');
+        return app ? getComputedStyle(app).backgroundColor : '';
+      });
       
       // Background colors should be different
       expect(newBg).not.toBe(initialBg);

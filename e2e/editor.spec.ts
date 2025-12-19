@@ -54,12 +54,17 @@ test.describe('Editor Functionality', () => {
 
   test.describe('Keyboard Shortcuts', () => {
     test('should support Ctrl/Cmd+A to select all', async ({ page }) => {
-      await mdreader.setEditorContent('Select all this text');
-      await page.waitForTimeout(300);
+      // First clear the editor
+      await mdreader.monacoEditor.click();
+      await page.waitForTimeout(200);
+      await page.keyboard.press('ControlOrMeta+A');
+      await page.waitForTimeout(100);
+      await page.keyboard.type('Select all this text', { delay: 20 });
+      await page.waitForTimeout(500);
       
       await mdreader.monacoEditor.click();
       await page.waitForTimeout(200);
-      await page.keyboard.press('Meta+A');
+      await page.keyboard.press('ControlOrMeta+A');
       await page.waitForTimeout(100);
       
       // After select all, typing should replace all content
@@ -82,7 +87,7 @@ test.describe('Editor Functionality', () => {
       await expect(mdreader.previewContent).toContainText('Original added');
       
       // Undo
-      await page.keyboard.press('Meta+Z');
+      await page.keyboard.press('ControlOrMeta+Z');
       await page.waitForTimeout(300);
       
       // Content should be back to original (undo may work differently)
@@ -190,7 +195,7 @@ test.describe('Editor Functionality', () => {
       await page.waitForTimeout(200);
       
       // Select all and clear first
-      await page.keyboard.press('Meta+A');
+      await page.keyboard.press('ControlOrMeta+A');
       await page.waitForTimeout(100);
       
       // Type character by character
@@ -198,19 +203,19 @@ test.describe('Editor Functionality', () => {
       
       await page.waitForTimeout(500);
       
-      const h1 = page.locator('.markdown-body h1');
+      const h1 = page.locator('.markdown-body h1').first();
       await expect(h1).toContainText('Dynamic');
     });
 
     test('should update preview when deleting content', async ({ page }) => {
       await mdreader.setEditorContentAndWaitFor('# Title\n\nParagraph', '.markdown-body h1');
       
-      await expect(page.locator('.markdown-body h1')).toBeVisible();
+      await expect(page.locator('.markdown-body h1').first()).toBeVisible();
       
       // Delete title
       await mdreader.monacoEditor.click();
       await page.waitForTimeout(200);
-      await page.keyboard.press('Meta+A');
+      await page.keyboard.press('ControlOrMeta+A');
       await page.waitForTimeout(100);
       await page.keyboard.type('Just text', { delay: 20 });
       await page.waitForTimeout(500);
