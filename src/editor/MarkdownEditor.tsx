@@ -1,6 +1,7 @@
 import Editor, { loader, type OnMount } from '@monaco-editor/react';
 import type { JSX } from 'react';
 import * as monaco from 'monaco-editor';
+import { isMobileDevice } from '../utils/AppUtils';
 
 // Configure Monaco to use local files instead of CDN
 loader.config({ monaco });
@@ -49,7 +50,7 @@ export function MarkdownEditor({
         options={{
           wordWrap: 'on',
           minimap: { enabled: false },
-          fontSize: 14,
+          fontSize: isMobileDevice() ? 16 : 14,
           lineNumbers: 'on',
           scrollBeyondLastLine: false,
           automaticLayout: true,
@@ -59,6 +60,8 @@ export function MarkdownEditor({
           folding: true,
           lineDecorationsWidth: 10,
           lineNumbersMinChars: 3,
+          // Disable Monaco's custom context menu on mobile to allow native copy/paste
+          contextmenu: !isMobileDevice(),
           unicodeHighlight: {
             ambiguousCharacters: false,
             invisibleCharacters: false,
