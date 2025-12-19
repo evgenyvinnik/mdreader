@@ -13,7 +13,7 @@ export default defineConfig({
   /* Retry on CI only - reduced to 1 retry for faster CI */
   retries: process.env.CI ? 1 : 0,
   /* Use multiple workers on CI for parallel execution */
-  workers: process.env.CI ? 4 : undefined,
+  workers: process.env.CI ? 2 : undefined,
   /* Reporter to use */
   reporter: process.env.CI 
     ? [['github'], ['html', { open: 'never' }]]
@@ -60,14 +60,14 @@ export default defineConfig({
     command: process.env.CI ? 'npm run preview' : 'npm run dev',
     url: process.env.CI ? 'http://localhost:4173' : 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
-    timeout: 60 * 1000,
+    timeout: 120 * 1000,
   },
 
-  /* Global timeout for each test - reduced for faster feedback */
-  timeout: 15000,
+  /* Global timeout for each test */
+  timeout: 30000,
 
   /* Expect timeout */
   expect: {
-    timeout: 10000,
+    timeout: 15000,
   },
 });

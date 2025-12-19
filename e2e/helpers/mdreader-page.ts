@@ -83,6 +83,8 @@ export class MDReaderPage {
   async goto(): Promise<void> {
     await this.page.goto('/');
     await this.waitForAppLoad();
+    // Ensure split view mode so both editor and preview are visible
+    await this.setViewMode('both');
   }
 
   /**
@@ -103,17 +105,12 @@ export class MDReaderPage {
   }
 
   /**
-   * Clear localStorage and IndexedDB to reset app state
+   * Clear localStorage to reset app preferences
+   * Note: IndexedDB clearing is unreliable across browsers, use fresh browser context instead
    */
   async resetAppState(): Promise<void> {
-    await this.page.evaluate(async () => {
+    await this.page.evaluate(() => {
       localStorage.clear();
-      const dbs = await indexedDB.databases();
-      for (const db of dbs) {
-        if (db.name) {
-          indexedDB.deleteDatabase(db.name);
-        }
-      }
     });
   }
 
