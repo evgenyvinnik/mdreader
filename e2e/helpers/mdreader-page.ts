@@ -36,6 +36,7 @@ export class MDReaderPage {
 
   // Preview content
   readonly previewContent: Locator;
+  readonly previewScrollContainer: Locator;
 
   // Loading state
   readonly loadingContainer: Locator;
@@ -72,6 +73,7 @@ export class MDReaderPage {
 
     // Preview
     this.previewContent = page.locator('.markdown-body');
+    this.previewScrollContainer = page.locator('.preview-container');
 
     // Loading
     this.loadingContainer = page.locator('.loading-container');
@@ -191,6 +193,7 @@ export class MDReaderPage {
 
   /**
    * Clear and set editor content 
+   * Uses keyboard input to trigger React state updates properly
    */
   async setEditorContent(text: string): Promise<void> {
     // Click on the editor to focus it
@@ -203,12 +206,31 @@ export class MDReaderPage {
     await this.page.keyboard.up('Control');
     await this.page.waitForTimeout(100);
     
-    // Type the new content (this replaces selected text)
-    // Use slower typing to ensure all characters are captured
-    await this.page.keyboard.type(text, { delay: 20 });
+    // For short content, type it directly (20ms delay is safer for special chars)
+    // For long content (>200 chars), use clipboard paste
+    if (text.length <= 200) {
+      await this.page.keyboard.type(text, { delay: 20 });
+    } else {
+      // Use clipboard for long content
+      await this.page.evaluate((content) => {
+        navigator.clipboard.writeText(content);
+      }, text);
+      await this.page.keyboard.down('Control');
+      await this.page.keyboard.press('KeyV');
+      await this.page.keyboard.up('Control');
+    }
     
-    // Wait for content to be processed
-    await this.page.waitForTimeout(200);
+    // Wait for content to be processed and preview to update
+    await this.page.waitForTimeout(500);
+  }
+
+  /**
+   * Set editor content and wait for a specific element to appear in preview
+   * More reliable than fixed timeouts for CI environments
+   */
+  async setEditorContentAndWaitFor(text: string, selector: string, timeout = 10000): Promise<void> {
+    await this.setEditorContent(text);
+    await this.page.locator(selector).waitFor({ state: 'visible', timeout });
   }
 
   /**
@@ -328,7 +350,7 @@ export class MDReaderPage {
    * Scroll the preview to a position
    */
   async scrollPreview(scrollTop: number): Promise<void> {
-    await this.previewContent.evaluate((el, top) => {
+    await this.previewScrollContainer.evaluate((el, top) => {
       el.scrollTop = top;
     }, scrollTop);
   }
@@ -337,7 +359,7 @@ export class MDReaderPage {
    * Get the preview scroll position
    */
   async getPreviewScrollTop(): Promise<number> {
-    return await this.previewContent.evaluate((el) => el.scrollTop);
+    return await this.previewScrollContainer.evaluate((el) => el.scrollTop);
   }
 
   /**

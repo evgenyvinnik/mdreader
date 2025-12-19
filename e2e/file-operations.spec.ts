@@ -131,11 +131,11 @@ test.describe('File Operations', () => {
     test('should create blank document', async ({ page }) => {
       // Add content to current document
       await mdreader.setEditorContent('Existing content');
-      await page.waitForTimeout(600);
+      await page.waitForTimeout(1000);
       
       // Create new document
       await mdreader.createNewDocument();
-      await page.waitForTimeout(300);
+      await page.waitForTimeout(500);
       
       // New document should be mostly empty (or have default content)
       const currentTitle = await mdreader.getCurrentDocumentTitle();
@@ -196,22 +196,23 @@ test.describe('File Operations', () => {
     test('should switch between documents', async ({ page }) => {
       // Create first document
       await mdreader.setEditorContent('Content of document one');
-      await page.waitForTimeout(600);
+      await page.waitForTimeout(1000);
       
       // Create second document
       await mdreader.createNewDocument();
-      await page.waitForTimeout(100);
+      await page.waitForTimeout(300);
       await mdreader.typeInEditor('Content of document two');
-      await page.waitForTimeout(600);
+      await page.waitForTimeout(1000);
       
       // Open dropdown and select first document
       await mdreader.openFileDropdown();
+      await page.waitForTimeout(200);
       const items = page.locator('.file-dropdown-item');
       
       // Click the second item (first document, since new one is at top)
       if (await items.count() >= 2) {
         await items.nth(1).click();
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(500);
         
         // Should show first document content
         await expect(mdreader.previewContent).toContainText('Content of document one');

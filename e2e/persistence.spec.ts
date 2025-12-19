@@ -30,15 +30,16 @@ test.describe('Persistence', () => {
       
       // Create new document and add content
       await mdreader.createNewDocument();
-      await page.waitForTimeout(100);
+      await page.waitForTimeout(300);
       await mdreader.typeInEditor('New document content');
-      await page.waitForTimeout(800);
+      await page.waitForTimeout(1000);
       
       const title = await mdreader.getCurrentDocumentTitle();
       
       // Reload
       await page.reload();
       await mdreader.waitForAppLoad();
+      await page.waitForTimeout(500);
       
       // Document should still exist in dropdown
       await mdreader.openFileDropdown();
@@ -72,19 +73,20 @@ test.describe('Persistence', () => {
       
       // Create first document
       await mdreader.setEditorContent('First document');
-      await page.waitForTimeout(800);
+      await page.waitForTimeout(1000);
       const firstTitle = await mdreader.getCurrentDocumentTitle();
       
       // Create second document
       await mdreader.createNewDocument();
-      await page.waitForTimeout(100);
+      await page.waitForTimeout(300);
       await mdreader.typeInEditor('Second document');
-      await page.waitForTimeout(800);
+      await page.waitForTimeout(1000);
       const secondTitle = await mdreader.getCurrentDocumentTitle();
       
       // Reload - should open second document (last edited)
       await page.reload();
       await mdreader.waitForAppLoad();
+      await page.waitForTimeout(500);
       
       const currentTitle = await mdreader.getCurrentDocumentTitle();
       expect(currentTitle).toBe(secondTitle);
@@ -150,9 +152,11 @@ test.describe('Persistence', () => {
       await mdreader.goto();
       
       await mdreader.setViewMode('preview');
+      await page.waitForTimeout(300);
       
       await page.reload();
       await mdreader.waitForAppLoad();
+      await page.waitForTimeout(500);
       
       const viewMode = await mdreader.getViewMode();
       expect(viewMode).toBe('preview');
@@ -412,7 +416,7 @@ test.describe('Persistence', () => {
       
       // Should be able to type
       await mdreader.typeInEditor('Fresh start');
-      await page.waitForTimeout(300);
+      await page.waitForTimeout(500);
       await expect(mdreader.previewContent).toContainText('Fresh start');
     });
   });

@@ -55,14 +55,16 @@ test.describe('Editor Functionality', () => {
   test.describe('Keyboard Shortcuts', () => {
     test('should support Ctrl/Cmd+A to select all', async ({ page }) => {
       await mdreader.setEditorContent('Select all this text');
-      await page.waitForTimeout(100);
+      await page.waitForTimeout(300);
       
       await mdreader.monacoEditor.click();
+      await page.waitForTimeout(200);
       await page.keyboard.press('Meta+A');
+      await page.waitForTimeout(100);
       
       // After select all, typing should replace all content
-      await page.keyboard.type('New content');
-      await page.waitForTimeout(300);
+      await page.keyboard.type('New content', { delay: 20 });
+      await page.waitForTimeout(500);
       
       await expect(mdreader.previewContent).toContainText('New content');
       await expect(mdreader.previewContent).not.toContainText('Select all');
@@ -185,29 +187,33 @@ test.describe('Editor Functionality', () => {
   test.describe('Real-time Preview Update', () => {
     test('should update preview as user types', async ({ page }) => {
       await mdreader.monacoEditor.click();
+      await page.waitForTimeout(200);
+      
+      // Select all and clear first
+      await page.keyboard.press('Meta+A');
       await page.waitForTimeout(100);
       
       // Type character by character
-      await page.keyboard.type('# ', { delay: 50 });
-      await page.keyboard.type('Dynamic', { delay: 50 });
+      await page.keyboard.type('# Dynamic', { delay: 50 });
       
-      await page.waitForTimeout(300);
+      await page.waitForTimeout(500);
       
       const h1 = page.locator('.markdown-body h1');
       await expect(h1).toContainText('Dynamic');
     });
 
     test('should update preview when deleting content', async ({ page }) => {
-      await mdreader.setEditorContent('# Title\n\nParagraph');
-      await page.waitForTimeout(300);
+      await mdreader.setEditorContentAndWaitFor('# Title\n\nParagraph', '.markdown-body h1');
       
       await expect(page.locator('.markdown-body h1')).toBeVisible();
       
       // Delete title
       await mdreader.monacoEditor.click();
+      await page.waitForTimeout(200);
       await page.keyboard.press('Meta+A');
-      await page.keyboard.type('Just text');
-      await page.waitForTimeout(300);
+      await page.waitForTimeout(100);
+      await page.keyboard.type('Just text', { delay: 20 });
+      await page.waitForTimeout(500);
       
       await expect(page.locator('.markdown-body h1')).not.toBeVisible();
     });
@@ -218,12 +224,12 @@ test.describe('Editor Functionality', () => {
       // Create long content
       const longContent = Array(100).fill('Line of text').join('\n');
       await mdreader.setEditorContent(longContent);
-      await page.waitForTimeout(300);
+      await page.waitForTimeout(500);
       
       // Try to scroll the editor
       const initialScroll = await mdreader.getEditorScrollTop();
       await mdreader.scrollEditor(500);
-      await page.waitForTimeout(100);
+      await page.waitForTimeout(300);
       
       const newScroll = await mdreader.getEditorScrollTop();
       expect(newScroll).toBeGreaterThan(initialScroll);
@@ -233,7 +239,7 @@ test.describe('Editor Functionality', () => {
   test.describe('Editor Focus', () => {
     test('should be focusable by clicking', async ({ page }) => {
       await mdreader.monacoEditor.click();
-      await page.waitForTimeout(100);
+      await page.waitForTimeout(300);
       
       // The editor should have focus (indicated by textarea focus)
       const textarea = page.locator('.monaco-editor textarea');

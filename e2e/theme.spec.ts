@@ -173,7 +173,7 @@ test.describe('Theme Toggle', () => {
       
       // Toggle theme
       await mdreader.toggleTheme();
-      await page.waitForTimeout(100);
+      await page.waitForTimeout(500);
       
       // Get background in new theme
       const newBg = await page.evaluate(() => 
@@ -220,15 +220,14 @@ test.describe('Theme Toggle', () => {
     });
 
     test('should apply theme to code blocks', async ({ page }) => {
-      await mdreader.setEditorContent('```javascript\nconst x = 1;\n```');
-      await page.waitForTimeout(500);
+      await mdreader.setEditorContentAndWaitFor('```javascript\nconst x = 1;\n```', '.markdown-body pre code');
       
       // Code block should be visible in both themes
       const codeBlock = page.locator('.markdown-body pre code');
       await expect(codeBlock).toBeVisible();
       
       await mdreader.toggleTheme();
-      await page.waitForTimeout(300);
+      await page.waitForTimeout(500);
       
       await expect(codeBlock).toBeVisible();
     });

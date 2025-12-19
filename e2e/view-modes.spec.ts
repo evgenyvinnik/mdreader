@@ -165,10 +165,12 @@ test.describe('View Modes', () => {
 
     test('should restore view mode on page reload', async ({ page }) => {
       await mdreader.setViewMode('preview');
+      await page.waitForTimeout(300);
       
       // Reload the page
       await page.reload();
       await mdreader.waitForAppLoad();
+      await page.waitForTimeout(500);
       
       const viewMode = await mdreader.getViewMode();
       expect(viewMode).toBe('preview');

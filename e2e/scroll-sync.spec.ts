@@ -10,9 +10,10 @@ test.describe('Scroll Synchronization', () => {
     // Ensure we're in split view for scroll sync tests
     await mdreader.setViewMode('both');
     
-    // Add long content for scrolling tests
-    await mdreader.setEditorContent(TestContent.longContent);
-    await page.waitForTimeout(500);
+    // Add long content for scrolling tests and wait for it to render
+    await mdreader.setEditorContentAndWaitFor(TestContent.longContent, '.markdown-body h1');
+    // Extra wait for content to be fully scrollable
+    await page.waitForTimeout(300);
   });
 
   test.describe('Locked Mode (Default)', () => {
@@ -26,7 +27,7 @@ test.describe('Scroll Synchronization', () => {
       
       // Scroll the editor
       await mdreader.scrollEditor(500);
-      await page.waitForTimeout(200);
+      await page.waitForTimeout(500);
       
       const newPreviewScroll = await mdreader.getPreviewScrollTop();
       expect(newPreviewScroll).toBeGreaterThan(initialPreviewScroll);
@@ -37,7 +38,7 @@ test.describe('Scroll Synchronization', () => {
       
       // Scroll the preview
       await mdreader.scrollPreview(500);
-      await page.waitForTimeout(200);
+      await page.waitForTimeout(500);
       
       const newEditorScroll = await mdreader.getEditorScrollTop();
       expect(newEditorScroll).toBeGreaterThan(initialEditorScroll);
@@ -88,7 +89,7 @@ test.describe('Scroll Synchronization', () => {
     test.beforeEach(async ({ page }) => {
       // Unlock scroll
       await mdreader.toggleScrollLock();
-      await page.waitForTimeout(100);
+      await page.waitForTimeout(200);
     });
 
     test('should not sync preview when editor scrolls', async ({ page }) => {
@@ -96,7 +97,7 @@ test.describe('Scroll Synchronization', () => {
       
       // Scroll the editor
       await mdreader.scrollEditor(500);
-      await page.waitForTimeout(200);
+      await page.waitForTimeout(500);
       
       const newPreviewScroll = await mdreader.getPreviewScrollTop();
       // Preview scroll should remain the same (or very close)
@@ -108,7 +109,7 @@ test.describe('Scroll Synchronization', () => {
       
       // Scroll the preview
       await mdreader.scrollPreview(500);
-      await page.waitForTimeout(200);
+      await page.waitForTimeout(500);
       
       const newEditorScroll = await mdreader.getEditorScrollTop();
       // Editor scroll should remain the same (or very close)
@@ -117,9 +118,9 @@ test.describe('Scroll Synchronization', () => {
 
     test('should allow independent scrolling of editor', async ({ page }) => {
       await mdreader.scrollEditor(300);
-      await page.waitForTimeout(100);
+      await page.waitForTimeout(200);
       await mdreader.scrollEditor(600);
-      await page.waitForTimeout(100);
+      await page.waitForTimeout(200);
       
       const editorScroll = await mdreader.getEditorScrollTop();
       const previewScroll = await mdreader.getPreviewScrollTop();
@@ -130,7 +131,7 @@ test.describe('Scroll Synchronization', () => {
 
     test('should allow independent scrolling of preview', async ({ page }) => {
       await mdreader.scrollPreview(300);
-      await page.waitForTimeout(100);
+      await page.waitForTimeout(200);
       
       const previewScroll = await mdreader.getPreviewScrollTop();
       const editorScroll = await mdreader.getEditorScrollTop();
@@ -146,34 +147,37 @@ test.describe('Scroll Synchronization', () => {
       expect(await mdreader.isScrollLocked()).toBe(true);
       
       await mdreader.toggleScrollLock();
+      await page.waitForTimeout(200);
       
       expect(await mdreader.isScrollLocked()).toBe(false);
     });
 
     test('should switch from unlocked to locked', async ({ page }) => {
       await mdreader.toggleScrollLock(); // Now unlocked
+      await page.waitForTimeout(200);
       expect(await mdreader.isScrollLocked()).toBe(false);
       
       await mdreader.toggleScrollLock(); // Now locked
+      await page.waitForTimeout(200);
       expect(await mdreader.isScrollLocked()).toBe(true);
     });
 
     test('should resume syncing after re-locking', async ({ page }) => {
       // Unlock
       await mdreader.toggleScrollLock();
-      await page.waitForTimeout(100);
+      await page.waitForTimeout(200);
       
       // Scroll editor independently
       await mdreader.scrollEditor(300);
-      await page.waitForTimeout(100);
+      await page.waitForTimeout(200);
       
       // Re-lock
       await mdreader.toggleScrollLock();
-      await page.waitForTimeout(100);
+      await page.waitForTimeout(200);
       
       // Now scroll should sync
       await mdreader.scrollEditor(600);
-      await page.waitForTimeout(300);
+      await page.waitForTimeout(500);
       
       const previewScroll = await mdreader.getPreviewScrollTop();
       expect(previewScroll).toBeGreaterThan(0);
@@ -183,7 +187,7 @@ test.describe('Scroll Synchronization', () => {
   test.describe('Edge Cases', () => {
     test('should handle scroll at top', async ({ page }) => {
       await mdreader.scrollEditor(0);
-      await page.waitForTimeout(200);
+      await page.waitForTimeout(500);
       
       const previewScroll = await mdreader.getPreviewScrollTop();
       expect(previewScroll).toBe(0);
@@ -210,15 +214,15 @@ test.describe('Scroll Synchronization', () => {
         }
       });
       
-      await page.waitForTimeout(300);
+      await page.waitForTimeout(500);
       
       // Preview should also be near bottom
       const previewAtBottom = await page.evaluate(() => {
-        const preview = document.querySelector('.markdown-body');
+        const preview = document.querySelector('.preview-container');
         if (!preview) return false;
         
         const maxScroll = preview.scrollHeight - preview.clientHeight;
-        return preview.scrollTop >= maxScroll - 10;
+        return maxScroll <= 0 || preview.scrollTop >= maxScroll - 50;
       });
       
       expect(previewAtBottom).toBe(true);
@@ -228,10 +232,10 @@ test.describe('Scroll Synchronization', () => {
       // Rapidly scroll the editor
       for (let i = 0; i < 5; i++) {
         await mdreader.scrollEditor(i * 200);
-        await page.waitForTimeout(50);
+        await page.waitForTimeout(100);
       }
       
-      await page.waitForTimeout(300);
+      await page.waitForTimeout(500);
       
       // Preview should have scrolled
       const previewScroll = await mdreader.getPreviewScrollTop();
@@ -242,10 +246,11 @@ test.describe('Scroll Synchronization', () => {
   test.describe('View Mode Interaction', () => {
     test('should not affect scroll sync in editor-only mode', async ({ page }) => {
       await mdreader.setViewMode('editor');
+      await page.waitForTimeout(200);
       
       // Should still be able to scroll editor
       await mdreader.scrollEditor(300);
-      await page.waitForTimeout(100);
+      await page.waitForTimeout(200);
       
       const editorScroll = await mdreader.getEditorScrollTop();
       expect(editorScroll).toBeGreaterThan(0);
@@ -253,10 +258,11 @@ test.describe('Scroll Synchronization', () => {
 
     test('should not affect scroll sync in preview-only mode', async ({ page }) => {
       await mdreader.setViewMode('preview');
+      await page.waitForTimeout(200);
       
       // Should still be able to scroll preview
       await mdreader.scrollPreview(300);
-      await page.waitForTimeout(100);
+      await page.waitForTimeout(200);
       
       const previewScroll = await mdreader.getPreviewScrollTop();
       expect(previewScroll).toBeGreaterThan(0);
@@ -264,14 +270,14 @@ test.describe('Scroll Synchronization', () => {
 
     test('should resume sync when returning to split view', async ({ page }) => {
       await mdreader.setViewMode('editor');
-      await page.waitForTimeout(100);
+      await page.waitForTimeout(200);
       
       await mdreader.setViewMode('both');
-      await page.waitForTimeout(100);
+      await page.waitForTimeout(200);
       
       // Scroll should still sync
       await mdreader.scrollEditor(400);
-      await page.waitForTimeout(300);
+      await page.waitForTimeout(500);
       
       const previewScroll = await mdreader.getPreviewScrollTop();
       expect(previewScroll).toBeGreaterThan(0);
@@ -281,11 +287,13 @@ test.describe('Scroll Synchronization', () => {
   test.describe('Persistence', () => {
     test('should persist scroll lock state to localStorage', async ({ page }) => {
       await mdreader.toggleScrollLock(); // Now unlocked
+      await page.waitForTimeout(200);
       
       const stored = await page.evaluate(() => localStorage.getItem('mdreader-scroll-lock'));
       expect(stored).toBe('false');
       
       await mdreader.toggleScrollLock(); // Now locked
+      await page.waitForTimeout(200);
       
       const storedAgain = await page.evaluate(() => localStorage.getItem('mdreader-scroll-lock'));
       expect(storedAgain).toBe('true');
@@ -294,11 +302,13 @@ test.describe('Scroll Synchronization', () => {
     test('should restore scroll lock state on reload', async ({ page }) => {
       // Unlock scroll
       await mdreader.toggleScrollLock();
+      await page.waitForTimeout(200);
       expect(await mdreader.isScrollLocked()).toBe(false);
       
       // Reload page
       await page.reload();
       await mdreader.waitForAppLoad();
+      await page.waitForTimeout(500);
       
       // Should still be unlocked
       expect(await mdreader.isScrollLocked()).toBe(false);

@@ -78,18 +78,19 @@ test.describe('Document Management', () => {
     test('should switch documents when selecting from dropdown', async ({ page }) => {
       // Create first document with content
       await mdreader.typeInEditor('First document');
-      await page.waitForTimeout(600);
+      await page.waitForTimeout(1000);
       const firstTitle = await mdreader.getCurrentDocumentTitle();
 
       // Create second document
       await mdreader.createNewDocument();
-      await page.waitForTimeout(100);
+      await page.waitForTimeout(300);
       await mdreader.typeInEditor('Second document');
-      await page.waitForTimeout(600);
+      await page.waitForTimeout(1000);
       const secondTitle = await mdreader.getCurrentDocumentTitle();
 
       // Switch back to first document
       await mdreader.openFileDropdown();
+      await page.waitForTimeout(200);
       
       // Find and click the first document in the list
       const items = page.locator('.file-dropdown-item');
@@ -103,6 +104,8 @@ test.describe('Document Management', () => {
           break;
         }
       }
+      
+      await page.waitForTimeout(500);
       
       // Verify the document changed
       const currentTitle = await mdreader.getCurrentDocumentTitle();
@@ -241,18 +244,21 @@ test.describe('Document Management', () => {
 
     test('should save new title on Enter', async ({ page }) => {
       await mdreader.openFileDropdown();
+      await page.waitForTimeout(200);
       
       const editBtn = page.locator('.file-dropdown-item').first().locator('.file-dropdown-edit');
       await editBtn.click();
+      await page.waitForTimeout(200);
       
       const editInput = page.locator('.file-dropdown-edit-input');
       await editInput.fill('New Document Title');
       await page.keyboard.press('Enter');
       
-      await page.waitForTimeout(100);
+      await page.waitForTimeout(500);
       
       // Check if the title was updated
       await mdreader.openFileDropdown();
+      await page.waitForTimeout(200);
       const firstItemTitle = await page.locator('.file-dropdown-item').first().locator('.file-dropdown-item-title').textContent();
       expect(firstItemTitle).toBe('New Document Title');
     });

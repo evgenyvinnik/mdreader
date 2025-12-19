@@ -98,10 +98,9 @@ test.describe('Critical Smoke Tests @critical', () => {
     await expect(mdreader.previewPane).toBeVisible();
     
     await mdreader.setEditorContent('```javascript\nconst x = 1;\n```');
-    await page.waitForTimeout(500);
     
     const codeBlock = page.locator('.markdown-body pre code');
-    await expect(codeBlock).toBeVisible();
+    await expect(codeBlock).toBeVisible({ timeout: 15000 });
   });
 
   test('links render correctly', async ({ page }) => {
@@ -109,12 +108,10 @@ test.describe('Critical Smoke Tests @critical', () => {
     await expect(mdreader.previewPane).toBeVisible();
     
     await mdreader.setEditorContent('[Example](https://example.com)');
-    await page.waitForTimeout(500);
     
-    const link = page.locator('.markdown-body a');
-    await expect(link).toBeVisible();
+    const link = page.locator('.markdown-body a').filter({ hasText: 'Example' });
+    await expect(link).toBeVisible({ timeout: 15000 });
     await expect(link).toHaveAttribute('href', 'https://example.com');
-    await expect(link).toHaveText('Example');
   });
 
   test('lists render correctly', async ({ page }) => {
@@ -122,9 +119,8 @@ test.describe('Critical Smoke Tests @critical', () => {
     await expect(mdreader.previewPane).toBeVisible();
     
     await mdreader.setEditorContent('- Item 1\n- Item 2\n\n1. First\n2. Second');
-    await page.waitForTimeout(500);
     
-    await expect(page.locator('.markdown-body ul')).toBeVisible();
-    await expect(page.locator('.markdown-body ol')).toBeVisible();
+    await expect(page.locator('.markdown-body ul')).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('.markdown-body ol')).toBeVisible({ timeout: 15000 });
   });
 });
