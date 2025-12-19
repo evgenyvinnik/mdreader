@@ -15,18 +15,17 @@
   </defs>
   <rect x="40" y="40" width="1200" height="6" fill="url(#accent)" rx="3"/>
   
-  <!-- Markdown icon -->
-  <g transform="translate(540, 140)">
-    <rect width="200" height="120" rx="12" fill="#333333" stroke="#569cd6" stroke-width="3"/>
-    <text x="30" y="85" font-family="system-ui, -apple-system, sans-serif" font-size="72" font-weight="bold" fill="#569cd6">M</text>
-    <text x="105" y="85" font-family="system-ui, -apple-system, sans-serif" font-size="72" font-weight="bold" fill="#4ec9b0">↓</text>
+  <!-- Favicon icon (scaled) -->
+  <g transform="translate(570, 80)">
+    <rect width="140" height="140" fill="black" rx="28" ry="28"/>
+    <text x="70" y="90" font-family="monospace" font-weight="bold" font-size="63" fill="white" text-anchor="middle" dominant-baseline="middle">.md</text>
   </g>
   
   <!-- App title -->
-  <text x="640" y="340" font-family="system-ui, -apple-system, sans-serif" font-size="72" font-weight="bold" fill="#ffffff" text-anchor="middle">MD Reader</text>
+  <text x="640" y="300" font-family="system-ui, -apple-system, sans-serif" font-size="72" font-weight="bold" fill="#ffffff" text-anchor="middle">MD Reader</text>
   
   <!-- Tagline -->
-  <text x="640" y="410" font-family="system-ui, -apple-system, sans-serif" font-size="28" fill="#cccccc" text-anchor="middle">Dead simple PWA for editing and previewing Markdown</text>
+  <text x="640" y="370" font-family="system-ui, -apple-system, sans-serif" font-size="28" fill="#cccccc" text-anchor="middle">Dead simple PWA for editing and previewing Markdown</text>
   
   <!-- Feature pills -->
   <g transform="translate(640, 460)" text-anchor="middle">
