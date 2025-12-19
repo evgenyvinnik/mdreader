@@ -69,7 +69,7 @@ test.describe('Scroll Synchronization', () => {
       
       // Preview should be at roughly the same percentage
       const previewScrollInfo = await page.evaluate(() => {
-        const preview = document.querySelector('.markdown-preview');
+        const preview = document.querySelector('.markdown-body');
         if (!preview) return { percentage: 0 };
         
         const maxScroll = preview.scrollHeight - preview.clientHeight;
@@ -214,7 +214,7 @@ test.describe('Scroll Synchronization', () => {
       
       // Preview should also be near bottom
       const previewAtBottom = await page.evaluate(() => {
-        const preview = document.querySelector('.markdown-preview');
+        const preview = document.querySelector('.markdown-body');
         if (!preview) return false;
         
         const maxScroll = preview.scrollHeight - preview.clientHeight;

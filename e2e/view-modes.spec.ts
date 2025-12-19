@@ -101,7 +101,7 @@ test.describe('View Modes', () => {
       await expect(mdreader.previewContent).toContainText('Preview Mode Test');
       
       // Check it's an H1
-      const h1 = page.locator('.markdown-preview h1');
+      const h1 = page.locator('.markdown-body h1');
       await expect(h1).toBeVisible();
     });
   });

@@ -93,9 +93,9 @@ test.describe('Editor Functionality', () => {
       await mdreader.setEditorContent('# Heading 1\n## Heading 2\n### Heading 3');
       await page.waitForTimeout(300);
       
-      const h1 = page.locator('.markdown-preview h1');
-      const h2 = page.locator('.markdown-preview h2');
-      const h3 = page.locator('.markdown-preview h3');
+      const h1 = page.locator('.markdown-body h1');
+      const h2 = page.locator('.markdown-body h2');
+      const h3 = page.locator('.markdown-body h3');
       
       await expect(h1).toHaveText('Heading 1');
       await expect(h2).toHaveText('Heading 2');
@@ -106,8 +106,8 @@ test.describe('Editor Functionality', () => {
       await mdreader.setEditorContent('**bold** and *italic* and ***both***');
       await page.waitForTimeout(300);
       
-      const strong = page.locator('.markdown-preview strong');
-      const em = page.locator('.markdown-preview em');
+      const strong = page.locator('.markdown-body strong');
+      const em = page.locator('.markdown-body em');
       
       await expect(strong.first()).toBeVisible();
       await expect(em.first()).toBeVisible();
@@ -117,7 +117,7 @@ test.describe('Editor Functionality', () => {
       await mdreader.setEditorContent('```javascript\nconst x = 1;\n```');
       await page.waitForTimeout(300);
       
-      const codeBlock = page.locator('.markdown-preview pre code');
+      const codeBlock = page.locator('.markdown-body pre code');
       await expect(codeBlock).toBeVisible();
       await expect(codeBlock).toContainText('const x = 1');
     });
@@ -126,7 +126,7 @@ test.describe('Editor Functionality', () => {
       await mdreader.setEditorContent('Use `inline code` here');
       await page.waitForTimeout(300);
       
-      const inlineCode = page.locator('.markdown-preview code').first();
+      const inlineCode = page.locator('.markdown-body code').first();
       await expect(inlineCode).toContainText('inline code');
     });
 
@@ -134,7 +134,7 @@ test.describe('Editor Functionality', () => {
       await mdreader.setEditorContent('- Item 1\n- Item 2\n- Item 3');
       await page.waitForTimeout(300);
       
-      const listItems = page.locator('.markdown-preview ul li');
+      const listItems = page.locator('.markdown-body ul li');
       expect(await listItems.count()).toBe(3);
     });
 
@@ -142,7 +142,7 @@ test.describe('Editor Functionality', () => {
       await mdreader.setEditorContent('1. First\n2. Second\n3. Third');
       await page.waitForTimeout(300);
       
-      const listItems = page.locator('.markdown-preview ol li');
+      const listItems = page.locator('.markdown-body ol li');
       expect(await listItems.count()).toBe(3);
     });
 
@@ -150,7 +150,7 @@ test.describe('Editor Functionality', () => {
       await mdreader.setEditorContent('> This is a quote');
       await page.waitForTimeout(300);
       
-      const blockquote = page.locator('.markdown-preview blockquote');
+      const blockquote = page.locator('.markdown-body blockquote');
       await expect(blockquote).toBeVisible();
       await expect(blockquote).toContainText('This is a quote');
     });
@@ -159,7 +159,7 @@ test.describe('Editor Functionality', () => {
       await mdreader.setEditorContent('[Link text](https://example.com)');
       await page.waitForTimeout(300);
       
-      const link = page.locator('.markdown-preview a');
+      const link = page.locator('.markdown-body a');
       await expect(link).toHaveAttribute('href', 'https://example.com');
       await expect(link).toHaveText('Link text');
     });
@@ -168,7 +168,7 @@ test.describe('Editor Functionality', () => {
       await mdreader.setEditorContent('![Alt text](https://example.com/image.png)');
       await page.waitForTimeout(300);
       
-      const img = page.locator('.markdown-preview img');
+      const img = page.locator('.markdown-body img');
       await expect(img).toHaveAttribute('src', 'https://example.com/image.png');
       await expect(img).toHaveAttribute('alt', 'Alt text');
     });
@@ -177,7 +177,7 @@ test.describe('Editor Functionality', () => {
       await mdreader.setEditorContent('Above\n\n---\n\nBelow');
       await page.waitForTimeout(300);
       
-      const hr = page.locator('.markdown-preview hr');
+      const hr = page.locator('.markdown-body hr');
       await expect(hr).toBeVisible();
     });
   });
@@ -193,7 +193,7 @@ test.describe('Editor Functionality', () => {
       
       await page.waitForTimeout(300);
       
-      const h1 = page.locator('.markdown-preview h1');
+      const h1 = page.locator('.markdown-body h1');
       await expect(h1).toContainText('Dynamic');
     });
 
@@ -201,7 +201,7 @@ test.describe('Editor Functionality', () => {
       await mdreader.setEditorContent('# Title\n\nParagraph');
       await page.waitForTimeout(300);
       
-      await expect(page.locator('.markdown-preview h1')).toBeVisible();
+      await expect(page.locator('.markdown-body h1')).toBeVisible();
       
       // Delete title
       await mdreader.monacoEditor.click();
@@ -209,7 +209,7 @@ test.describe('Editor Functionality', () => {
       await page.keyboard.type('Just text');
       await page.waitForTimeout(300);
       
-      await expect(page.locator('.markdown-preview h1')).not.toBeVisible();
+      await expect(page.locator('.markdown-body h1')).not.toBeVisible();
     });
   });
 

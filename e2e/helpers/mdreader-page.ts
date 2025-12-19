@@ -71,7 +71,7 @@ export class MDReaderPage {
     this.monacoTextArea = page.locator('.monaco-editor textarea');
 
     // Preview
-    this.previewContent = page.locator('.markdown-preview');
+    this.previewContent = page.locator('.markdown-body');
 
     // Loading
     this.loadingContainer = page.locator('.loading-container');
@@ -190,31 +190,25 @@ export class MDReaderPage {
   }
 
   /**
-   * Clear and set editor content using Monaco API
+   * Clear and set editor content 
    */
   async setEditorContent(text: string): Promise<void> {
-    // Use Monaco API to set content directly
-    await this.page.evaluate((content) => {
-      const monaco = (window as unknown as { 
-        monaco?: { 
-          editor: { 
-            getEditors: () => Array<{ 
-              setValue: (value: string) => void;
-              focus: () => void;
-            }> 
-          } 
-        } 
-      }).monaco;
-      
-      const editor = monaco?.editor.getEditors()[0];
-      if (editor) {
-        editor.setValue(content);
-        editor.focus();
-      }
-    }, text);
+    // Click on the editor to focus it
+    await this.monacoEditor.click();
+    await this.page.waitForTimeout(200);
     
-    // Small delay for the editor to process
+    // Select all (Ctrl+A works in Monaco regardless of platform)
+    await this.page.keyboard.down('Control');
+    await this.page.keyboard.press('KeyA');
+    await this.page.keyboard.up('Control');
     await this.page.waitForTimeout(100);
+    
+    // Type the new content (this replaces selected text)
+    // Use slower typing to ensure all characters are captured
+    await this.page.keyboard.type(text, { delay: 20 });
+    
+    // Wait for content to be processed
+    await this.page.waitForTimeout(200);
   }
 
   /**

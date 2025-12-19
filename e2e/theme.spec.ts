@@ -200,7 +200,7 @@ test.describe('Theme Toggle', () => {
       
       // Get heading color in current theme
       const initialColor = await page.evaluate(() => {
-        const h1 = document.querySelector('.markdown-preview h1');
+        const h1 = document.querySelector('.markdown-body h1');
         return h1 ? getComputedStyle(h1).color : '';
       });
       
@@ -210,7 +210,7 @@ test.describe('Theme Toggle', () => {
       
       // Get heading color in new theme
       const newColor = await page.evaluate(() => {
-        const h1 = document.querySelector('.markdown-preview h1');
+        const h1 = document.querySelector('.markdown-body h1');
         return h1 ? getComputedStyle(h1).color : '';
       });
       
@@ -224,7 +224,7 @@ test.describe('Theme Toggle', () => {
       await page.waitForTimeout(500);
       
       // Code block should be visible in both themes
-      const codeBlock = page.locator('.markdown-preview pre code');
+      const codeBlock = page.locator('.markdown-body pre code');
       await expect(codeBlock).toBeVisible();
       
       await mdreader.toggleTheme();
@@ -281,7 +281,7 @@ test.describe('Theme Toggle', () => {
       await page.waitForTimeout(300);
       
       // Text should be visible
-      await expect(page.locator('.markdown-preview h1')).toBeVisible();
+      await expect(page.locator('.markdown-body h1')).toBeVisible();
     });
 
     test('should maintain readable contrast in dark theme', async ({ page }) => {
@@ -295,7 +295,7 @@ test.describe('Theme Toggle', () => {
       await page.waitForTimeout(300);
       
       // Text should be visible
-      await expect(page.locator('.markdown-preview h1')).toBeVisible();
+      await expect(page.locator('.markdown-body h1')).toBeVisible();
     });
   });
 });
