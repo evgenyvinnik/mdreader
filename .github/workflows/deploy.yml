@@ -25,7 +25,7 @@ jobs:
   # Test job - runs Playwright E2E tests
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -39,6 +39,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Build for testing
+        run: npm run build
+
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
 
@@ -47,11 +50,11 @@ jobs:
 
       - name: Upload Playwright Report
         uses: actions/upload-artifact@v4
-        if: ${{ !cancelled() }}
+        if: failure()
         with:
           name: playwright-report
           path: playwright-report/
-          retention-days: 30
+          retention-days: 7
 
   # Build job - only runs if tests pass
   build:
