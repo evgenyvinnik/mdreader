@@ -115,7 +115,7 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           # Vite builds to ./dist directory (configured with base: '/mdreader/' in vite.config.ts)
           path: ./dist
