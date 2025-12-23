@@ -521,7 +521,23 @@ body,
   margin-right: 0.5em;
 }
 
-/* Responsive Layout */
+/* Tablet Layout (iPad portrait, etc.) */
+@media (max-width: 1024px) {
+  /* Hide button text labels on tablets */
+  .toolbar-button span {
+    display: none;
+  }
+
+  .toolbar-button {
+    padding: 0.4rem;
+  }
+
+  .app-title {
+    font-size: 1rem;
+  }
+}
+
+/* Responsive Layout - Mobile */
 @media (max-width: 768px) {
   .toolbar {
     flex-direction: column;
