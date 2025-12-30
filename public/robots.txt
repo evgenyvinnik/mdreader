@@ -1,0 +1,6 @@
+# robots.txt for mdreader.ca
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://mdreader.ca/sitemap.xml
