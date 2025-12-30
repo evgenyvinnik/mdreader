@@ -1,7 +1,7 @@
 {
   "name": "mdreader",
   "private": true,
-  "version": "1.0.251223.31",
+  "version": "1.0.251230.32",
   "type": "module",
   "scripts": {
     "dev": "vite",
