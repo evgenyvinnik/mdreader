@@ -1,5 +1,5 @@
 import { useMemo, type RefObject, type JSX } from 'react';
-import MarkdownIt, { type PluginSimple } from 'markdown-it';
+import MarkdownIt from 'markdown-it';
 import markdownItAnchor from 'markdown-it-anchor';
 import markdownItTaskLists from 'markdown-it-task-lists';
 import { full as markdownItEmoji } from 'markdown-it-emoji';
@@ -39,7 +39,7 @@ const md = new MarkdownIt({
         .replace(/\s+/g, '-'),
   })
   .use(markdownItTaskLists, { enabled: true, label: true })
-  .use(markdownItEmoji as PluginSimple);
+  .use(markdownItEmoji);
 
 export function MarkdownPreview({
   content,

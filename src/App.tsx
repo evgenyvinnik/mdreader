@@ -5,7 +5,7 @@ import { useDocumentStore } from './state/useDocumentStore';
 import {
   openMarkdownFile,
   saveMarkdownFile,
-  readDroppedFile,
+  readMarkdownFile,
 } from './utils/fileOperations';
 import {
   type Theme,
@@ -126,7 +126,7 @@ function App(): JSX.Element {
       });
 
       if (mdFile) {
-        const fileData = await readDroppedFile(mdFile);
+        const fileData = await readMarkdownFile(mdFile);
         if (fileData) {
           loadFromFile(fileData.content, fileData.filename);
         }
@@ -180,28 +180,25 @@ function App(): JSX.Element {
     };
   }, [loadFromFile]);
 
-  // Handle files opened via PWA file handler
+  // Handle files opened from the OS via the PWA file handler
   useEffect(() => {
-    if ('launchQueue' in window) {
-      interface LaunchParams {
-        files?: { getFile: () => Promise<File> }[];
-      }
-      interface LaunchQueue {
-        setConsumer: (callback: (params: LaunchParams) => void) => void;
-      }
-      const queue = (window as unknown as { launchQueue: LaunchQueue })
-        .launchQueue;
-      queue.setConsumer((launchParams) => {
-        const fileHandle = launchParams.files?.[0];
-        if (fileHandle) {
-          void fileHandle.getFile().then((file) => {
-            void file.text().then((content) => {
-              loadFromFile(content, file.name);
-            });
-          });
+    const openLaunchedFiles = async (params: LaunchParams): Promise<void> => {
+      for (const handle of params.files) {
+        if (handle.kind !== 'file') continue;
+        try {
+          const fileData = await readMarkdownFile(await handle.getFile());
+          if (fileData) {
+            loadFromFile(fileData.content, fileData.filename);
+          }
+        } catch (error) {
+          console.error('Failed to open launched file:', error);
         }
-      });
-    }
+      }
+    };
+
+    window.launchQueue?.setConsumer((params) => {
+      void openLaunchedFiles(params);
+    });
   }, [loadFromFile]);
 
   const handleEditorScroll = useCallback(() => {

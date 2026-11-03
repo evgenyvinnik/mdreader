@@ -1,5 +1,5 @@
 declare module 'markdown-it-task-lists' {
-  import type MarkdownIt from 'markdown-it';
+  import type { MarkdownIt } from 'markdown-it';
   interface TaskListOptions {
     enabled?: boolean;
     label?: boolean;
@@ -10,8 +10,9 @@ declare module 'markdown-it-task-lists' {
 }
 
 declare module 'markdown-it-emoji' {
-  import type MarkdownIt from 'markdown-it';
-  export const bare: MarkdownIt.PluginSimple;
-  export const light: MarkdownIt.PluginSimple;
-  export const full: MarkdownIt.PluginSimple;
+  import type { MarkdownIt } from 'markdown-it';
+  type EmojiPlugin = (md: MarkdownIt) => void;
+  export const bare: EmojiPlugin;
+  export const light: EmojiPlugin;
+  export const full: EmojiPlugin;
 }
