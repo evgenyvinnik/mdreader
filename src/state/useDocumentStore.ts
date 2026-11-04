@@ -42,71 +42,102 @@ export function useDocumentStore(): DocumentStore {
   const [document, setDocument] = useState<Document | null>(null);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const debounceRef = useRef<number | null>(null);
+  const pendingSaveRef = useRef<{ timer: number; doc: Document } | null>(null);
+  // Set once a document is chosen explicitly (file launch, drop, open, new, select)
+  // so the async restore of the last document can't overwrite it
+  const hasChosenDocumentRef = useRef(false);
 
   const refreshDocuments = useCallback(async (): Promise<void> => {
     const docs = await getAllDocuments();
     setDocuments(docs);
   }, []);
 
-  // Load document on mount
+  // Restore the last document on mount
   useEffect(() => {
-    const loadDocument = async (): Promise<void> => {
+    let cancelled = false;
+
+    const restoreLastDocument = async (): Promise<void> => {
       try {
-        // Try to load the last document
         const lastDocId = localStorage.getItem(LAST_DOC_KEY);
-        let doc: Document | undefined;
-
-        if (lastDocId) {
-          const { getDocument } = await import('../storage/indexedDb');
-          doc = await getDocument(lastDocId);
-        }
-
+        let doc = lastDocId ? await getDocument(lastDocId) : undefined;
         doc ??= await getLastDocument();
 
-        if (doc) {
-          setDocument(doc);
-        } else {
+        // A file opened from the OS (launchQueue) usually arrives while we are
+        // still waiting on IndexedDB; it wins over the remembered document
+        const isSuperseded = (): boolean =>
+          cancelled || hasChosenDocumentRef.current;
+
+        if (!doc && !isSuperseded()) {
           // Create a new document if none exists
-          const newDoc: Document = {
+          doc = {
             id: generateId(),
             title: generateTimestampTitle(),
             content:
               '# Welcome to MD Reader\n\nStart writing your Markdown here...\n',
             updatedAt: Date.now(),
           };
-          await saveDocument(newDoc);
-          localStorage.setItem(LAST_DOC_KEY, newDoc.id);
-          setDocument(newDoc);
+          await saveDocument(doc);
         }
-        // Load all documents for the dropdown
-        await refreshDocuments();
+        if (doc && !isSuperseded()) {
+          setDocument(doc);
+        }
+        if (!cancelled) {
+          // Load all documents for the dropdown
+          await refreshDocuments();
+        }
       } catch (error) {
         console.error('Failed to load document:', error);
       } finally {
-        setIsLoading(false);
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       }
     };
 
-    void loadDocument();
+    void restoreLastDocument();
+    return (): void => {
+      cancelled = true;
+    };
   }, [refreshDocuments]);
 
-  // Debounced save
-  const debouncedSave = useCallback((doc: Document) => {
-    if (debounceRef.current) {
-      window.clearTimeout(debounceRef.current);
+  // Remember whichever document is on screen so it reopens on next launch
+  const documentId = document?.id;
+  useEffect(() => {
+    if (documentId) {
+      localStorage.setItem(LAST_DOC_KEY, documentId);
     }
-    debounceRef.current = window.setTimeout(async () => {
-      try {
-        await saveDocument(doc);
-        localStorage.setItem(LAST_DOC_KEY, doc.id);
-      } catch (error) {
-        console.error('Failed to save document:', error);
-      }
-    }, DEBOUNCE_DELAY);
+  }, [documentId]);
+
+  const persist = useCallback(async (doc: Document): Promise<void> => {
+    try {
+      await saveDocument(doc);
+    } catch (error) {
+      console.error('Failed to save document:', error);
+    }
   }, []);
 
+  // Debounced save
+  const debouncedSave = useCallback(
+    (doc: Document) => {
+      const pending = pendingSaveRef.current;
+      if (pending) {
+        window.clearTimeout(pending.timer);
+        // Switching documents must not drop the previous one's unsaved edits
+        if (pending.doc.id !== doc.id) {
+          void persist(pending.doc);
+        }
+      }
+      const timer = window.setTimeout(() => {
+        pendingSaveRef.current = null;
+        void persist(doc);
+      }, DEBOUNCE_DELAY);
+      pendingSaveRef.current = { timer, doc };
+    },
+    [persist]
+  );
+
   const createNewDocument = useCallback(() => {
+    hasChosenDocumentRef.current = true;
     const newDoc: Document = {
       id: generateId(),
       title: generateTimestampTitle(),
@@ -145,8 +176,9 @@ export function useDocumentStore(): DocumentStore {
 
   const loadFromFile = useCallback(
     (content: string, filename: string) => {
-      // Extract title from filename (remove .md or .markdown extension)
-      const title = filename.replace(/\.(md|markdown)$/i, '');
+      hasChosenDocumentRef.current = true;
+      // Extract title from filename (remove the markdown extension)
+      const title = filename.replace(/\.(md|markdown|mdown|mkd)$/i, '');
       const newDoc: Document = {
         id: generateId(),
         title,
@@ -162,10 +194,10 @@ export function useDocumentStore(): DocumentStore {
   );
 
   const loadDocument = useCallback(async (id: string) => {
+    hasChosenDocumentRef.current = true;
     const doc = await getDocument(id);
     if (doc) {
       setDocument(doc);
-      localStorage.setItem(LAST_DOC_KEY, doc.id);
     }
   }, []);
 
@@ -179,7 +211,6 @@ export function useDocumentStore(): DocumentStore {
         const firstDoc = docs[0];
         if (firstDoc) {
           setDocument(firstDoc);
-          localStorage.setItem(LAST_DOC_KEY, firstDoc.id);
         } else {
           // Create a new document if all were deleted
           const newDoc: Document = {
@@ -189,7 +220,6 @@ export function useDocumentStore(): DocumentStore {
             updatedAt: Date.now(),
           };
           await saveDocument(newDoc);
-          localStorage.setItem(LAST_DOC_KEY, newDoc.id);
           setDocument(newDoc);
           await refreshDocuments();
         }

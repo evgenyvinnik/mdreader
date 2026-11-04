@@ -92,7 +92,7 @@ export function FileDropdown({
     setEditingTitle(doc.title);
   };
 
-  const handleEditSave = (e: React.FormEvent): void => {
+  const handleEditSave = (e: React.SyntheticEvent): void => {
     e.preventDefault();
     if (editingId && editingTitle.trim()) {
       onRename(editingId, editingTitle.trim());

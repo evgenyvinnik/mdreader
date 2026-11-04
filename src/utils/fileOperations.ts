@@ -87,11 +87,11 @@ function removeExistingTimestamp(filename: string): string {
 }
 
 /**
- * Reads a dropped File object and returns its content
- * @param file - The dropped File object
+ * Reads a dropped or OS-launched File object and returns its content
+ * @param file - The File object
  * @returns Promise with file content and filename, or null if invalid
  */
-export async function readDroppedFile(file: File): Promise<FileData | null> {
+export async function readMarkdownFile(file: File): Promise<FileData | null> {
   // Check if it's a markdown file
   if (!isMarkdownFile(file.name) && file.type !== 'text/markdown') {
     return null;
@@ -104,7 +104,7 @@ export async function readDroppedFile(file: File): Promise<FileData | null> {
       filename: file.name,
     };
   } catch (error) {
-    console.error('Failed to read dropped file:', error);
+    console.error('Failed to read file:', error);
     return null;
   }
 }
